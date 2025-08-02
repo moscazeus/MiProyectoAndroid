@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    
+    <!-- Fondo circular -->
+    <path
+        android:fillColor="@color/cafe_green"
+        android:pathData="M60,60m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0" />
+    
+    <!-- Taza de café -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M45,70 L45,100 L85,100 L85,70 Z" />
+    
+    <!-- Asa de la taza -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M85,75 L95,75 L95,95 L85,95 Z" />
+    
+    <!-- Corazón dentro de la taza -->
+    <path
+        android:fillColor="@color/cafe_red"
+        android:pathData="M60,80 L65,75 L70,80 L70,90 L65,95 L60,90 Z" />
+    
+    <!-- Grano de café -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M65,65 L70,63 L70,67 L65,69 Z" />
+    
+    <!-- Texto "CR" -->
+    <path
+        android:fillColor="@color/text_light"
+        android:pathData="M55,105 L65,105 L65,115 L55,115 Z" />
+    <path
+        android:fillColor="@color/text_light"
+        android:pathData="M75,105 L85,105 L85,115 L75,115 Z" />
+</vector> 

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_light">
+
+    <!-- Toolbar con logo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/cafe_green"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/logo_cafe_raquelita_final"
+            android:background="@drawable/logo_background"
+            android:padding="4dp"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="Logo Café Raquelita" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Facturación"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_light" />
+
+        <Button
+            android:id="@+id/buttonBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Volver"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="8dp"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <!-- Contenido principal -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Información del restaurante -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/background_dark"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center">
+
+                <!-- Logo de Café Raquelita -->
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/logo_cafe_raquelita_final"
+                    android:background="@drawable/logo_background"
+                    android:padding="4dp"
+                    android:layout_marginBottom="12dp"
+                    android:contentDescription="Logo Café Raquelita" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Café Raquelita"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/cafe_green"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sistema de Facturación"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Facturas Digitales"
+                    android:textSize="14sp"
+                    android:textColor="@color/cafe_brown" />
+
+            </LinearLayout>
+
+            <!-- Opciones de facturación -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Generar Factura -->
+                <Button
+                    android:id="@+id/buttonGenerateInvoice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🧾 Generar Nueva Factura"
+                    android:background="@drawable/button_cafe_raquelita"
+                    android:textColor="@color/text_light"
+                    android:padding="16dp"
+                    android:textSize="18sp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Historial de Facturas -->
+                <Button
+                    android:id="@+id/buttonInvoiceHistory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📋 Historial de Facturas"
+                    android:background="@drawable/button_cafe_raquelita"
+                    android:textColor="@color/text_light"
+                    android:padding="16dp"
+                    android:textSize="18sp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Exportar Facturas -->
+                <Button
+                    android:id="@+id/buttonExportInvoices"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📤 Exportar Facturas"
+                    android:background="@drawable/button_cafe_raquelita"
+                    android:textColor="@color/text_light"
+                    android:padding="16dp"
+                    android:textSize="18sp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Configuración de Facturas -->
+                <Button
+                    android:id="@+id/buttonInvoiceSettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="⚙️ Configuración"
+                    android:background="@drawable/button_cafe_raquelita"
+                    android:textColor="@color/text_light"
+                    android:padding="16dp"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+
+            <!-- Información adicional -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/background_dark"
+                android:padding="16dp"
+                android:layout_marginTop="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💡 Información"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/cafe_green"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="• Las facturas incluyen tu logo de Café Raquelita"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="• Propina del 5% opcional"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="• Exportación a PDF disponible"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout> 

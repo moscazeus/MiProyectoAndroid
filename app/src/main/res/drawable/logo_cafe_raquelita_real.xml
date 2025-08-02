@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- Taza de café -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M40,80 L40,120 L120,120 L120,80 Z" />
+    
+    <!-- Asa de la taza -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M120,90 L140,90 L140,110 L120,110 Z" />
+    
+    <!-- Plato -->
+    <path
+        android:fillColor="@color/cafe_brown"
+        android:pathData="M30,120 L130,120 L130,125 L30,125 Z" />
+    
+    <!-- Corazón dentro de la taza -->
+    <path
+        android:fillColor="@color/cafe_red"
+        android:pathData="M70,90 L80,80 L90,90 L90,100 L80,110 L70,100 Z" />
+    
+    <!-- Salpicadura de líquido -->
+    <path
+        android:fillColor="@color/cafe_brown"
+        android:pathData="M80,70 Q90,60 100,70 Q110,80 100,90 L80,90 Z" />
+    
+    <!-- Gotas de salpicadura -->
+    <path
+        android:fillColor="@color/cafe_brown"
+        android:pathData="M85,65 L87,70 L85,75 Z" />
+    <path
+        android:fillColor="@color/cafe_brown"
+        android:pathData="M95,65 L97,70 L95,75 Z" />
+    
+    <!-- Grano de café flotando -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M90,60 L95,58 L95,62 L90,64 Z" />
+    
+    <!-- Texto "Café Raquelita" -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M50,140 L150,140 L150,145 L50,145 Z" />
+    
+    <!-- Acentos decorativos -->
+    <path
+        android:fillColor="@color/cafe_yellow"
+        android:pathData="M60,150 L65,150 L65,155 L60,155 Z" />
+    <path
+        android:fillColor="@color/cafe_yellow"
+        android:pathData="M135,150 L140,150 L140,155 L135,155 Z" />
+</vector> 

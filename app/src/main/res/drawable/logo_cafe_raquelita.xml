@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    
+    <!-- Fondo circular -->
+    <path
+        android:fillColor="@color/cafe_green"
+        android:pathData="M60,60m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0" />
+    
+    <!-- Círculo interno -->
+    <path
+        android:fillColor="@color/cafe_yellow"
+        android:pathData="M60,60m-35,0a35,35 0,1 1,70 0a35,35 0,1 1,-70 0" />
+    
+    <!-- Texto "CR" -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M45,45 L55,45 L55,75 L45,75 Z" />
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M65,45 L75,45 L75,75 L65,75 Z" />
+    
+    <!-- Punto central -->
+    <path
+        android:fillColor="@color/cafe_dark"
+        android:pathData="M58,58 L62,58 L62,62 L58,62 Z" />
+</vector> 

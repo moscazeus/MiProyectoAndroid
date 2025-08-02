@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_light"
+    android:padding="24dp">
+
+    <!-- Header con logo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <!-- Logo de Café Raquelita -->
+        <ImageView
+            android:id="@+id/imageViewLogo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/logo_cafe_raquelita_final"
+            android:background="@drawable/logo_background"
+            android:padding="8dp"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="Logo Café Raquelita" />
+
+        <!-- Título de la app -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Café Raquelita"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/cafe_green"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sistema de Gestión"
+            android:textSize="16sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Información del usuario -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@color/background_dark"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/textViewWelcome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="¡Bienvenido, Usuario!"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/cafe_green"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/textViewRole"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rol: Usuario"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Botones de navegación -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Inventario -->
+        <Button
+            android:id="@+id/buttonInventory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📦 Gestión de Inventario"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+        <!-- Mesas -->
+        <Button
+            android:id="@+id/buttonTables"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🪑 Gestión de Mesas"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+        <!-- Facturación -->
+        <Button
+            android:id="@+id/buttonBilling"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🧾 Facturación"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+        <!-- Control de Caja -->
+        <Button
+            android:id="@+id/buttonCashRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💰 Control de Caja"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+        <!-- Dashboard -->
+        <Button
+            android:id="@+id/buttonDashboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 Dashboard y Reportes"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+        <!-- Gestión de Empleados -->
+        <Button
+            android:id="@+id/buttonEmployees"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="👥 Gestión de Empleados"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="16dp"
+            android:textSize="18sp" />
+
+    </LinearLayout>
+
+    <!-- Botón de cerrar sesión -->
+    <Button
+        android:id="@+id/buttonLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🚪 Cerrar Sesión"
+        android:background="@drawable/button_logout"
+        android:textColor="@color/cafe_red"
+        android:padding="12dp"
+        android:textSize="16sp" />
+
+</LinearLayout> 

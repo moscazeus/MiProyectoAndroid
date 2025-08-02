@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "931870939347",
+    "project_id": "caferaquelitaapp",
+    "storage_bucket": "caferaquelitaapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:931870939347:android:f1a7b8e9b7531ef7bd9c26",
+        "android_client_info": {
+          "package_name": "com.caferaquelita.restauranteapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "931870939347-pepjjpmtjetbsb3hpt9sgd2j5skkoosg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqXd-WXC2aEL5YQWtnboz3Bmw3qlnowVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "931870939347-pepjjpmtjetbsb3hpt9sgd2j5skkoosg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

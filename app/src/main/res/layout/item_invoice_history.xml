@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/edit_text_background"
+    android:layout_margin="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <!-- Número de factura -->
+    <TextView
+        android:id="@+id/textViewInvoiceNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Factura #FAC-20241201-1234"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Fecha -->
+    <TextView
+        android:id="@+id/textViewDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fecha: 01/12/2024 15:30"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Mesa -->
+    <TextView
+        android:id="@+id/textViewTableNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mesa: 1"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Mesero -->
+    <TextView
+        android:id="@+id/textViewWaiterName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mesero: Juan Pérez"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Resumen de productos -->
+    <TextView
+        android:id="@+id/textViewProductsSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Productos: 2x Hamburguesa, 1x Bebida"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Total -->
+    <TextView
+        android:id="@+id/textViewTotal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total: $32,250"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_blue_dark"
+        android:gravity="end" />
+
+</LinearLayout> 

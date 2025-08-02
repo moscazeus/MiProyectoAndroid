@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores de Café Raquelita -->
+    
+    <!-- Verde café (hojas) -->
+    <color name="cafe_green">#2E7D32</color>
+    <color name="cafe_green_light">#4CAF50</color>
+    <color name="cafe_green_dark">#1B5E20</color>
+    
+    <!-- Rojo cereza -->
+    <color name="cafe_red">#D32F2F</color>
+    <color name="cafe_red_light">#F44336</color>
+    <color name="cafe_red_dark">#B71C1C</color>
+    
+    <!-- Amarillo cereza -->
+    <color name="cafe_yellow">#FFC107</color>
+    <color name="cafe_yellow_light">#FFD54F</color>
+    <color name="cafe_yellow_dark">#FF8F00</color>
+    
+    <!-- Marrón tostado -->
+    <color name="cafe_brown">#8D6E63</color>
+    <color name="cafe_brown_light">#A1887F</color>
+    <color name="cafe_brown_dark">#5D4037</color>
+    
+    <!-- Marrón oscuro (café tostado) -->
+    <color name="cafe_dark">#3E2723</color>
+    <color name="cafe_dark_light">#5D4037</color>
+    
+    <!-- Azul para botones -->
+    <color name="cafe_blue">#2196F3</color>
+    <color name="cafe_blue_light">#42A5F5</color>
+    <color name="cafe_blue_dark">#1976D2</color>
+    
+    <!-- Colores del sistema -->
+    <color name="colorPrimary">@color/cafe_green</color>
+    <color name="colorPrimaryDark">@color/cafe_green_dark</color>
+    <color name="colorPrimaryLight">@color/cafe_green_light</color>
+    <color name="colorAccent">@color/cafe_yellow</color>
+    
+    <!-- Colores de fondo -->
+    <color name="background_light">#FAFAFA</color>
+    <color name="background_dark">#F5F5F5</color>
+    
+    <!-- Colores de texto -->
+    <color name="text_primary">@color/cafe_dark</color>
+    <color name="text_secondary">@color/cafe_brown</color>
+    <color name="text_light">#FFFFFF</color>
+    
+    <!-- Colores de estado -->
+    <color name="success_green">@color/cafe_green</color>
+    <color name="warning_yellow">@color/cafe_yellow</color>
+    <color name="error_red">@color/cafe_red</color>
+    
+    <!-- Colores adicionales -->
+    <color name="gray">#757575</color>
+    <color name="light_gray">#BDBDBD</color>
+    <color name="dark_gray">#424242</color>
+    
+    <!-- Colores legacy para compatibilidad -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Colores del Dashboard -->
+    <color name="primary">@color/cafe_green</color>
+    <color name="primary_dark">@color/cafe_green_dark</color>
+    <color name="accent">@color/cafe_yellow</color>
+    <color name="income_green">#FF4CAF50</color>
+    <color name="expense_red">#FFF44336</color>
+    <color name="profit_blue">#FF2196F3</color>
+    <color name="transactions_gray">#FF607D8B</color>
+    <color name="divider">#FFE0E0E0</color>
+</resources>

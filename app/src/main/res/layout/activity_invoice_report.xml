@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <!-- Contenido principal -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <!-- Logo y título -->
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/logo_cafe_raquelita_final"
+                android:background="@drawable/logo_background"
+                android:padding="8dp"
+                android:layout_marginBottom="16dp"
+                android:contentDescription="Logo Café Raquelita" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reporte de Facturas"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/cafe_green"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Selecciona una fecha para generar el reporte"
+                android:textSize="16sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="32dp"
+                android:gravity="center" />
+
+            <!-- Card con DatePicker -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/edit_text_background"
+                android:padding="24dp"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Seleccionar Fecha"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/cafe_green"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center" />
+
+                <DatePicker
+                    android:id="@+id/datePicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:datePickerMode="calendar"
+                    android:calendarViewShown="true"
+                    android:spinnersShown="false"
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+
+            <!-- Botón generar reporte -->
+            <Button
+                android:id="@+id/buttonGenerateReport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📊 Generar Reporte"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:background="@drawable/button_cafe_raquelita"
+                android:textColor="@color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Botón ver reporte -->
+            <Button
+                android:id="@+id/buttonViewReport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="👁️ Ver Reporte"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:background="@drawable/button_cafe_raquelita"
+                android:textColor="@color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp"
+                android:enabled="false" />
+
+            <!-- Estado del proceso -->
+            <TextView
+                android:id="@+id/textViewStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Selecciona una fecha y genera el reporte"
+                android:textSize="16sp"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout> 

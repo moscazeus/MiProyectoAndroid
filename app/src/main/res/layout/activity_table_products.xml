@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_light">
+
+    <!-- Toolbar mejorado -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/cafe_green"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <!-- Información de la mesa mejorada -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="@color/cafe_green_light"
+        android:elevation="2dp">
+
+        <TextView
+            android:id="@+id/textViewTableInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mesa 1 - Mesero"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/textViewTotal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Total: $0"
+            android:textSize="18sp"
+            android:textColor="@color/white"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="16dp" />
+
+    <!-- RecyclerView para productos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewProducts"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:clipToPadding="false"
+        android:background="@color/white" />
+
+    <!-- Mensaje cuando no hay productos -->
+    <LinearLayout
+        android:id="@+id/linearLayoutEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:background="@color/white">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_launcher_foreground"
+            android:alpha="0.3"
+            android:layout_marginBottom="20dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No hay productos en esta mesa"
+            android:textSize="18sp"
+            android:textColor="@color/cafe_brown"
+            android:layout_marginBottom="12dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Toca el botón + para agregar productos"
+            android:textSize="16sp"
+            android:textColor="@color/gray"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+    <!-- Botones de acción mejorados -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/white"
+        android:elevation="4dp">
+
+        <!-- Botón Guardar Pedido / Volver -->
+        <Button
+            android:id="@+id/buttonSaveOrder"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="GUARDAR PEDIDO"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@color/cafe_green"
+            android:textColor="@color/white"
+            android:layout_marginEnd="8dp"
+            android:padding="16dp"
+            android:drawableStart="@android:drawable/ic_menu_save"
+            android:drawablePadding="8dp" />
+
+        <!-- Botón Cerrar Mesa -->
+        <Button
+            android:id="@+id/buttonCloseTable"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CERRAR MESA"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@color/cafe_red"
+            android:textColor="@color/white"
+            android:layout_marginStart="8dp"
+            android:padding="16dp"
+            android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
+            android:drawablePadding="8dp" />
+
+    </LinearLayout>
+
+    <!-- Floating Action Button para agregar productos -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddProduct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/cafe_green"
+        app:tint="@color/white"
+        app:elevation="6dp" />
+
+</LinearLayout> 

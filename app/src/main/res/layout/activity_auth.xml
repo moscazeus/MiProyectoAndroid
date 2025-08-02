@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="@color/background_light">
+
+    <!-- Logo de Café Raquelita -->
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/logo_cafe_raquelita_simple"
+        android:background="@drawable/logo_background"
+        android:padding="8dp"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="Logo Café Raquelita" />
+
+    <!-- Título -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Café Raquelita"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="@color/cafe_green"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sistema de Gestión"
+        android:textSize="18sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Formulario -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="@color/background_dark"
+        android:layout_marginBottom="16dp"
+        android:elevation="4dp">
+
+        <!-- Email -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/editTextEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ingresa tu email"
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:textSize="16sp" />
+
+        <!-- Password -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Contraseña"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/editTextPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ingresa tu contraseña"
+            android:inputType="textVisiblePassword"
+            android:layout_marginBottom="24dp"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:textSize="16sp"
+            android:imeOptions="actionDone"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:clickable="true"
+            android:enabled="true" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Botones -->
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Iniciar Sesión"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="16dp"
+            android:layout_marginBottom="12dp"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btnRegister"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Registrarse"
+            android:background="@drawable/button_logout"
+            android:textColor="@color/cafe_red"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            android:textSize="16sp" />
+
+        <!-- Botón de prueba para usuarios de prueba -->
+        <Button
+            android:id="@+id/btnTestUsers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🧪 Probar Usuarios de Prueba"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp" />
+
+        <!-- Botón de prueba para campo de contraseña -->
+        <Button
+            android:id="@+id/btnTestPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔍 Probar Campo Contraseña"
+            android:background="@drawable/button_logout"
+            android:textColor="@color/cafe_red"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp" />
+
+        <!-- Botón de bypass temporal -->
+        <Button
+            android:id="@+id/btnBypass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🚀 ACCESO DIRECTO (Bypass)"
+            android:background="@drawable/button_cafe_raquelita"
+            android:textColor="@color/text_light"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <!-- Información de roles -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@color/background_dark"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Roles Disponibles:"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/cafe_green"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👑 Administrador - Acceso completo"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👔 Gerente - Gestión y reportes"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🪑 Mesero - Gestión de mesas"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👨‍🍳 Cocinero - Gestión de inventario"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💰 Cajero - Control de caja"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary" />
+
+    </LinearLayout>
+
+    <!-- Texto de información -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gestiona tu restaurante de manera fácil y eficiente"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout> 

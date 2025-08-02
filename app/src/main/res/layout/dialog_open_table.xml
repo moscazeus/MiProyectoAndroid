@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Asignar Mesero a la Mesa"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"
+        android:textColor="@android:color/black" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ingresa el nombre del mesero que atenderá esta mesa:"
+        android:textSize="14sp"
+        android:layout_marginBottom="12dp"
+        android:textColor="@android:color/darker_gray" />
+
+    <EditText
+        android:id="@+id/editTextWaiterName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ej: Juan Pérez"
+        android:inputType="textPersonName"
+        android:padding="16dp"
+        android:background="@drawable/edit_text_background"
+        android:textSize="16sp"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+</LinearLayout> 
