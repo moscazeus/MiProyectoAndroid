@@ -29,6 +29,25 @@ class MainActivity : AppCompatActivity() {
     private var currentUser: User? = null
     private val authViewModel = AuthViewModel()
 
+private fun renderPermissions(perms: Map<String, Boolean>?) {
+    val canInventory     = perms?.get("manage_inventory")      == true
+    val canTables        = perms?.get("manage_tables")         == true
+    val canBilling       = perms?.get("generate_invoices")     == true
+    val canCashRegister  = perms?.get("manage_cash_register")  == true
+    val canDashboard     = perms?.get("view_reports")          == true
+    val canEmployees     = perms?.get("manage_employees")      == true
+
+    buttonInventory.visibility    = if (canInventory)    View.VISIBLE else View.GONE
+    buttonTables.visibility       = if (canTables)       View.VISIBLE else View.GONE
+    buttonBilling.visibility      = if (canBilling)      View.VISIBLE else View.GONE
+    buttonCashRegister.visibility = if (canCashRegister) View.VISIBLE else View.GONE
+    buttonDashboard.visibility    = if (canDashboard)    View.VISIBLE else View.GONE
+    buttonEmployees.visibility    = if (canEmployees)    View.VISIBLE else View.GONE
+}
+
+
+    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -37,6 +56,13 @@ class MainActivity : AppCompatActivity() {
         setupUserInfo()
         setupUI()
     }
+
+    override fun onStart() {
+    super.onStart()
+    currentUser = authViewModel.getCurrentUser()
+    renderPermissions(currentUser?.permissions)
+}
+
 
     private fun setupViews() {
         textViewWelcome = findViewById(R.id.textViewWelcome)
@@ -85,16 +111,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupButtonsByRole() {
-        val role = currentUser?.role ?: "waiter"
-        
-        // Mostrar/ocultar botones según permisos
-        buttonInventory.visibility = if (currentUser?.hasPermission("manage_inventory") == true) View.VISIBLE else View.GONE
-        buttonTables.visibility = if (currentUser?.hasPermission("manage_tables") == true) View.VISIBLE else View.GONE
-        buttonBilling.visibility = if (currentUser?.hasPermission("generate_invoices") == true) View.VISIBLE else View.GONE
-        buttonCashRegister.visibility = if (currentUser?.hasPermission("manage_cash_register") == true) View.VISIBLE else View.GONE
-        buttonDashboard.visibility = if (currentUser?.hasPermission("view_reports") == true) View.VISIBLE else View.GONE
-        buttonEmployees.visibility = if (currentUser?.hasPermission("manage_employees") == true) View.VISIBLE else View.GONE
-    }
+    renderPermissions(currentUser?.permissions)
+}
+
 
     private fun setupButtonListeners() {
         buttonInventory.setOnClickListener {
