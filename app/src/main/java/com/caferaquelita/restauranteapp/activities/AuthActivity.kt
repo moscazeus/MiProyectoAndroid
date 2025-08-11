@@ -2,7 +2,6 @@ package com.caferaquelita.restauranteapp.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.util.Patterns
 import android.view.View
 import android.widget.Button
@@ -13,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.caferaquelita.restauranteapp.R
 import com.caferaquelita.restauranteapp.viewmodels.AuthViewModel
+import androidx.core.widget.doAfterTextChanged
 
 /**
  * Actividad para login y registro de usuarios con roles de empleado y administrador.
@@ -43,7 +43,7 @@ class AuthActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBar)
         
         // Configuración simplificada para evitar problemas con Google Play Services
-        editTextPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        
         
         // Configuración básica del campo
         editTextPassword.isFocusable = true
@@ -51,23 +51,15 @@ class AuthActivity : AppCompatActivity() {
         editTextPassword.isEnabled = true
         editTextPassword.isClickable = true
         
-        // Listener simple para detectar si funciona
-        editTextPassword.setOnClickListener {
-            Toast.makeText(this, "Campo de contraseña tocado", Toast.LENGTH_SHORT).show()
-        }
         
-        // Listener para cambios de texto
-        editTextPassword.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) {
-                val password = s.toString()
-                if (password.isNotEmpty()) {
-                    // El campo está funcionando - mostrar feedback
-                    Toast.makeText(this@AuthActivity, "Texto ingresado: ${password.length} caracteres", Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
+        
+        // Listener simple que NO modifica el texto (no usar setText aquí)
+editTextPassword.doAfterTextChanged {
+    // Si quieres, valida para habilitar el botón:
+    val ok = (it?.length ?: 0) >= 6
+    btnLogin.isEnabled = ok
+}
+
     }
 
     private fun setupUI() {
