@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "931870939347-ocgg3qv1hres4jde22en0u5k4avmapog.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.caferaquelita.restauranteapp",
+            "certificate_hash": "887c2b3d36f4cc65650d65ec7509456b915b3918"
+          }
+        },
+        {
           "client_id": "931870939347-pepjjpmtjetbsb3hpt9sgd2j5skkoosg.apps.googleusercontent.com",
           "client_type": 3
         }

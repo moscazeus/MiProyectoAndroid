@@ -1,34 +1,49 @@
 package com.caferaquelita.restauranteapp.activities
 
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.caferaquelita.restauranteapp.R
 import com.caferaquelita.restauranteapp.adapters.TableAdapter
-import com.caferaquelita.restauranteapp.adapters.TableProductAdapter
-import com.caferaquelita.restauranteapp.adapters.TableItemSummaryAdapter
 import com.caferaquelita.restauranteapp.models.Product
 import com.caferaquelita.restauranteapp.models.Table
-import com.caferaquelita.restauranteapp.models.TableItem
 import com.caferaquelita.restauranteapp.models.TableStatus
 import com.caferaquelita.restauranteapp.viewmodels.TablesViewModel
+import com.caferaquelita.restauranteapp.utils.Constants
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.NumberFormat
 import java.util.Locale
+
+
+
+
+
+
+
 
 /**
  * Actividad para la gestión de mesas.
  * Mejorada para ser más profesional e intuitiva.
  */
 class TablesActivity : AppCompatActivity() {
+    private lateinit var userId: String
     private lateinit var toolbar: Toolbar
     private lateinit var recyclerViewTables: RecyclerView
     private lateinit var linearLayoutEmpty: LinearLayout
@@ -36,9 +51,9 @@ class TablesActivity : AppCompatActivity() {
     private lateinit var fabAddTable: FloatingActionButton
     private lateinit var textViewFreeTables: TextView
     private lateinit var textViewOccupiedTables: TextView
-    
     private lateinit var tableAdapter: TableAdapter
     private val viewModel: TablesViewModel by viewModels()
+    private val invoiceRepo by lazy { com.caferaquelita.restauranteapp.repositories.InvoiceRepository(this) }
     private val numberFormat = NumberFormat.getCurrencyInstance(Locale("es", "CO")).apply {
         maximumFractionDigits = 0
         minimumFractionDigits = 0
@@ -46,21 +61,53 @@ class TablesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_tables)
 
-        setupViews()
-        setupToolbar()
-        setupRecyclerView()
-        setupUI()
-        observeViewModel()
-        loadData()
+        userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        val db = FirebaseFirestore.getInstance()
+
+        if (userId.isNotEmpty()) {
+            // Leer SIEMPRE del servidor (evita valores viejos del caché)
+            db.collection("cash").document("status")
+                .get(Source.SERVER)
+                .addOnSuccessListener { doc ->
+                    val isOpen = doc.getBoolean("isOpen") == true
+                    if (isOpen) {
+                        iniciarActividadDeMesas()   // ✅ Caja abierta → cargamos la UI de Mesas
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "No se encontró caja abierta. Contacta al administrador.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        finish()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(
+                        this,
+                        "Error al verificar la caja: ${e.message ?: "intenta de nuevo"}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                }
+        } else {
+            Toast.makeText(this, "Usuario no autenticado", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadTables()
+    }
+
+
 
     private fun setupViews() {
         try {
             toolbar = findViewById(R.id.toolbar)
             recyclerViewTables = findViewById(R.id.recyclerViewTables)
-            linearLayoutEmpty = findViewById(R.id.textViewEmpty)
+            linearLayoutEmpty = findViewById(R.id.linearLayoutEmpty)
             progressBar = findViewById(R.id.progressBar)
             fabAddTable = findViewById(R.id.fabAddTable)
             
@@ -91,7 +138,8 @@ class TablesActivity : AppCompatActivity() {
                 intent.putExtra("table_id", table.id)
                 startActivity(intent)
             },
-            onCloseTable = { table -> showCloseTableDialog(table) }
+            onCloseTable = { table -> closeTable(table) }   // ← ahora usamos el nuevo método
+
         )
         
         recyclerViewTables.apply {
@@ -143,9 +191,10 @@ class TablesActivity : AppCompatActivity() {
     private fun updateSummary(tables: List<Table>) {
         val freeTables = tables.count { it.status == TableStatus.FREE }
         val occupiedTables = tables.count { it.status == TableStatus.OCCUPIED }
-        
-        textViewFreeTables.text = "Mesas Libres: $freeTables"
-        textViewOccupiedTables.text = "Mesas Ocupadas: $occupiedTables"
+
+        textViewFreeTables.text = freeTables.toString()
+        textViewOccupiedTables.text = occupiedTables.toString()
+
     }
 
     private fun showOpenTableDialog(table: Table) {
@@ -161,8 +210,8 @@ class TablesActivity : AppCompatActivity() {
             setPadding(50, 50, 50, 50)
             setText("")
         }
-        
-        val dialog = AlertDialog.Builder(this)
+
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Abrir Mesa ${table.number}")
             .setMessage("Ingresa el nombre del mesero que atenderá esta mesa:")
             .setView(editText)
@@ -294,7 +343,7 @@ class TablesActivity : AppCompatActivity() {
         // Mostrar información inicial
         updateProductInfo()
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Agregar Producto a Mesa ${table.number}")
             .setView(dialogView)
             .setPositiveButton("Agregar", null) // Configurar después
@@ -340,271 +389,255 @@ class TablesActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun showCloseTableDialog(table: Table) {
-        if (table.items.isEmpty()) {
-            // Si la mesa no tiene productos, cerrar directamente
-            val dialog = AlertDialog.Builder(this)
-                .setTitle("Cerrar Mesa ${table.number}")
-                .setMessage("¿Estás seguro de que quieres cerrar esta mesa?")
-                .setPositiveButton("Cerrar", null)
-                .setNegativeButton("Cancelar", null)
-                .setCancelable(false)
-                .create()
-            
-            // Configurar colores de los botones
-            dialog.setOnShowListener {
-                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                
-                positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-                positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                
-                negativeButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null))
-                negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                
-                positiveButton.setOnClickListener {
-                    viewModel.closeTable(table.id)
-                    dialog.dismiss()
-                }
-                
-                negativeButton.setOnClickListener {
-                    dialog.dismiss()
-                }
-            }
-            
-            dialog.show()
-        } else {
-            // Si la mesa tiene productos, mostrar opción de quitar productos o cerrar con propina
-            val dialog = AlertDialog.Builder(this)
-                .setTitle("Cerrar Mesa ${table.number}")
-                .setMessage("¿Qué deseas hacer?\n\n1. Quitar productos antes de cerrar\n2. Cerrar mesa con propina\n3. Cerrar mesa directamente")
-                .setPositiveButton("Quitar Productos", null)
-                .setNegativeButton("Cerrar con Propina", null)
-                .setNeutralButton("Cerrar Directamente", null)
-                .setCancelable(false)
-                .create()
-            
-            // Configurar colores y listeners de los botones
-            dialog.setOnShowListener {
-                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-                
-                // Configurar botón "Quitar Productos"
-                positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark, null))
-                positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                positiveButton.text = "Quitar Productos"
-                positiveButton.setOnClickListener {
-                    showRemoveProductsDialog(table)
-                    dialog.dismiss()
-                }
-                
-                // Configurar botón "Cerrar con Propina"
-                negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_orange_dark, null))
-                negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                negativeButton.text = "Cerrar con Propina"
-                negativeButton.setOnClickListener {
-                    showCloseWithTipDialog(table)
-                    dialog.dismiss()
-                }
-                
-                // Configurar botón "Cerrar Directamente"
-                neutralButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-                neutralButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                neutralButton.text = "Cerrar Directamente"
-                neutralButton.setOnClickListener {
-                    viewModel.closeTable(table.id)
-                    dialog.dismiss()
-                }
-            }
-            
-            dialog.show()
-        }
-    }
 
-    private fun showCloseWithTipDialog(table: Table) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_close_table_with_tip, null)
-        val recyclerViewTableItems = dialogView.findViewById<RecyclerView>(R.id.recyclerViewTableItems)
-        val textViewSubtotal = dialogView.findViewById<TextView>(R.id.textViewSubtotal)
-        val textViewTip = dialogView.findViewById<TextView>(R.id.textViewTip)
-        val textViewTotal = dialogView.findViewById<TextView>(R.id.textViewTotal)
-        val checkBoxIncludeTip = dialogView.findViewById<CheckBox>(R.id.checkBoxIncludeTip)
 
-        // Configurar RecyclerView
-        val tableItemSummaryAdapter = TableItemSummaryAdapter(table.items)
-        recyclerViewTableItems.apply {
-            layoutManager = LinearLayoutManager(this@TablesActivity)
-            adapter = tableItemSummaryAdapter
-        }
 
-        // Calcular totales
-        val subtotal = table.items.sumOf { it.subtotal }
-        val tipPercentage = 0.05 // 5%
-        val tipAmount = if (checkBoxIncludeTip.isChecked) (subtotal * tipPercentage).toInt() else 0
-        val total = subtotal + tipAmount
-
-        // Mostrar totales sin decimales
-        textViewSubtotal.text = "Subtotal: $${subtotal.toInt()}"
-        textViewTip.text = "Propina (5%): $${tipAmount}"
-        textViewTotal.text = "Total a pagar: $${total.toInt()}"
-
-        // Configurar checkbox para actualizar totales
-        checkBoxIncludeTip.setOnCheckedChangeListener { _, isChecked ->
-            val newTipAmount = if (isChecked) (subtotal * tipPercentage).toInt() else 0
-            val newTotal = subtotal + newTipAmount
-            
-            textViewTip.text = "Propina (5%): $${newTipAmount}"
-            textViewTotal.text = "Total a pagar: $${newTotal.toInt()}"
-        }
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Cerrar Mesa ${table.number}")
-            .setView(dialogView)
-            .setPositiveButton("Generar Factura", null)
-            .setNegativeButton("Cerrar Mesa", null)
-            .setNeutralButton("Cancelar", null)
-            .setCancelable(false)
-            .create()
-        
-        // Configurar colores de los botones
-        dialog.setOnShowListener {
-            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-            val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-            
-            positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark, null))
-            positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            positiveButton.text = "Generar Factura"
-            
-            negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
-            negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            negativeButton.text = "Cerrar Mesa"
-            
-            neutralButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-            neutralButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            neutralButton.text = "Cancelar"
-            
-            positiveButton.setOnClickListener {
-                val finalTipAmount = if (checkBoxIncludeTip.isChecked) (subtotal * tipPercentage).toInt() else 0
-                // Por ahora solo generar la factura, la propina se manejará en la facturación
-                generateInvoice(table)
-                dialog.dismiss()
-            }
-            
-            negativeButton.setOnClickListener {
-                val finalTipAmount = if (checkBoxIncludeTip.isChecked) (subtotal * tipPercentage).toInt() else 0
-                // Por ahora solo cerrar la mesa, la propina se manejará en la facturación
-                viewModel.closeTable(table.id)
-                dialog.dismiss()
-            }
-            
-            neutralButton.setOnClickListener {
-                dialog.dismiss()
-            }
-        }
-        
-        dialog.show()
-    }
-
-    private fun showRemoveProductsDialog(table: Table) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_remove_product_from_table, null)
-        val recyclerViewTableItems = dialogView.findViewById<RecyclerView>(R.id.recyclerViewTableItems)
-        val textViewTotalBefore = dialogView.findViewById<TextView>(R.id.textViewTotalBefore)
-        val textViewTotalAfter = dialogView.findViewById<TextView>(R.id.textViewTotalAfter)
-
-        // Configurar RecyclerView
-        var tableProductAdapter: TableProductAdapter? = null
-        tableProductAdapter = TableProductAdapter(
-            tableItems = table.items,
-            onItemCheckedChanged = { _, _ ->
-                tableProductAdapter?.let { adapter ->
-                    updateTotalAfterRemoval(table, adapter, textViewTotalAfter)
-                }
-            }
-        )
-
-        recyclerViewTableItems.apply {
-            layoutManager = LinearLayoutManager(this@TablesActivity)
-            adapter = tableProductAdapter
-        }
-
-        // Mostrar total actual
-        val currentTotal = table.items.sumOf { it.subtotal } + table.tipAmount
-        textViewTotalBefore.text = "Total actual: ${numberFormat.format(currentTotal)}"
-        textViewTotalAfter.text = "Total después: ${numberFormat.format(currentTotal)}"
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Quitar Productos de Mesa ${table.number}")
-            .setView(dialogView)
-            .setPositiveButton("Quitar Seleccionados", null)
-            .setNegativeButton("Cancelar", null)
-            .setCancelable(false)
-            .create()
-        
-        // Configurar colores de los botones
-        dialog.setOnShowListener {
-            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-            
-            positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-            positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            positiveButton.text = "Quitar Seleccionados"
-            
-            negativeButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null))
-            negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            negativeButton.text = "Cancelar"
-            
-            positiveButton.setOnClickListener {
-                val selectedItems = tableProductAdapter?.getSelectedItems() ?: emptyList()
-                if (selectedItems.isNotEmpty()) {
-                    // Quitar productos uno por uno
-                    selectedItems.forEach { item ->
-                        viewModel.removeProductFromTable(table.id, item.productId)
-                    }
-                    dialog.dismiss()
-                } else {
-                    Toast.makeText(this, "No has seleccionado productos para quitar", Toast.LENGTH_SHORT).show()
-                }
-            }
-            
-            negativeButton.setOnClickListener {
-                dialog.dismiss()
-            }
-        }
-        
-        dialog.show()
-    }
-
-    private fun updateTotalAfterRemoval(table: Table, adapter: TableProductAdapter, textViewTotalAfter: TextView) {
-        val selectedItems = adapter.getSelectedItems()
-        val totalToRemove = selectedItems.sumOf { it.subtotal }
-        val currentTotal = table.items.sumOf { it.subtotal } + table.tipAmount
-        val newTotal = currentTotal - totalToRemove
-        
-        textViewTotalAfter.text = "Total después: ${numberFormat.format(newTotal)}"
-    }
 
     private fun showAddTableDialog() {
         // Por ahora, mostrar un mensaje simple
         Toast.makeText(this, "Las mesas se crean automáticamente (1-10)", Toast.LENGTH_SHORT).show()
     }
 
-    private fun generateInvoice(table: Table) {
-        val intent = Intent(this, InvoiceActivity::class.java).apply {
-            putExtra("table_id", table.id)
-            putExtra("table_number", table.number)
-            putExtra("waiter_name", table.waiterName)
-        }
-        startActivity(intent)
-    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                finish()   // ← reemplazo directo
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
-} 
+
+    private fun iniciarActividadDeMesas() {
+        setContentView(R.layout.activity_tables) // ← NECESARIO
+        setupViews()
+        setupToolbar()
+        setupRecyclerView()
+        setupUI()
+        observeViewModel()
+        loadData()
+    }
+
+    // Lee SIEMPRE la mesa directo del SERVIDOR para evitar caché
+    private fun fetchFreshTable(
+        tableId: String,
+        onOk: (Table) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        FirebaseFirestore.getInstance()
+            .collection("tables")
+            .document(tableId)
+            .get(Source.SERVER)
+            .addOnSuccessListener { doc ->
+                val fresh = doc.toObject(Table::class.java)?.copy(id = doc.id)
+                if (fresh != null) onOk(fresh) else onError("Mesa no encontrada")
+            }
+            .addOnFailureListener { e ->
+                onError(e.message ?: "Error de red")
+            }
+    }
+
+
+    // === CIERRE DE MESA DESDE EL LISTADO ===
+
+    private fun closeTable(table: Table) {
+        // 1) Traemos la mesa FRESCA del servidor
+        fetchFreshTable(
+            tableId = table.id,
+            onOk = { fresh ->
+                // Si realmente no hay items, avisar y NO cerrar.
+                if (fresh.items.isEmpty()) {
+                    Toast.makeText(
+                        this,
+                        "No hay productos en la mesa para generar factura.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@fetchFreshTable
+                }
+
+                // 2) Mostramos el diálogo usando la info fresca (total, etc.)
+                val dialog = MaterialAlertDialogBuilder(this)
+                    .setTitle("Cerrar Mesa ${fresh.number}")
+                    .setMessage("¿Qué deseas hacer?")
+                    .setPositiveButton("Cerrar sin propina", null)
+                    .setNeutralButton("Cerrar con propina", null)
+                    .setNegativeButton("Cancelar", null)
+                    .create()
+
+                dialog.setOnShowListener {
+                    val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                    val neutralButton  = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+                    val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+
+                    positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
+                    positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
+                    positiveButton.text = "Cerrar sin propina"
+
+                    neutralButton.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark, null))
+                    neutralButton.setTextColor(getResources().getColor(android.R.color.white, null))
+                    neutralButton.text = "Cerrar con propina"
+
+                    negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
+                    negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
+                    negativeButton.text = "Cancelar"
+
+                    positiveButton.setOnClickListener {
+                        closeTableWithoutTip(fresh)  // usamos la mesa fresca
+                        dialog.dismiss()
+                    }
+                    neutralButton.setOnClickListener {
+                        showTipDialog(fresh)         // usamos la mesa fresca
+                        dialog.dismiss()
+                    }
+                    negativeButton.setOnClickListener { dialog.dismiss() }
+                }
+
+                dialog.show()
+            },
+            onError = { msg ->
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+            }
+        )
+    }
+
+
+    private fun closeTableWithoutTip(table: Table) {
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle("Confirmar Cierre")
+            .setMessage("¿Estás seguro de que quieres cerrar la mesa ${table.number} sin propina?")
+            .setPositiveButton("Sí, Cerrar", null)
+            .setNegativeButton("Cancelar", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+
+            positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
+            positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
+            positiveButton.text = "Sí, Cerrar"
+
+            negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
+            negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
+            negativeButton.text = "Cancelar"
+
+            positiveButton.setOnClickListener {
+                generateInvoiceAndCloseTable(table, 0.0)
+                dialog.dismiss()
+            }
+            negativeButton.setOnClickListener { dialog.dismiss() }
+        }
+
+        dialog.show()
+    }
+
+    private fun showTipDialog(table: Table) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_tip_input, null)
+        val editTextTip = dialogView.findViewById<EditText>(R.id.editTextTip)
+
+        val standardTip = (table.totalAmount * Constants.STANDARD_TIP_PERCENTAGE).toInt()
+        editTextTip.setText(standardTip.toString())
+        editTextTip.hint = "Propina estándar: $${standardTip} (5%)"
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle("Agregar Propina")
+            .setView(dialogView)
+            .setPositiveButton("Sí (5%)", null)
+            .setNeutralButton("Personalizar", null)
+            .setNegativeButton("No", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            val neutralButton  = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+
+            positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
+            positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
+            positiveButton.text = "Sí (5%)"
+
+            neutralButton.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark, null))
+            neutralButton.setTextColor(getResources().getColor(android.R.color.white, null))
+            neutralButton.text = "Personalizar"
+
+            negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
+            negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
+            negativeButton.text = "No"
+
+            positiveButton.setOnClickListener {
+                generateInvoiceAndCloseTable(table, standardTip.toDouble())
+                dialog.dismiss()
+            }
+            neutralButton.setOnClickListener {
+                val customTip = editTextTip.text.toString().toDoubleOrNull() ?: standardTip.toDouble()
+                generateInvoiceAndCloseTable(table, customTip)
+                dialog.dismiss()
+            }
+            negativeButton.setOnClickListener {
+                generateInvoiceAndCloseTable(table, 0.0)
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun generateInvoiceAndCloseTable(table: Table, tipAmount: Double) {
+        // 1) Guarda la propina en la mesa
+        viewModel.updateTableTip(table.id, tipAmount)
+        // 2) Cierra la mesa
+        viewModel.closeTable(table.id)
+        // 3) Refresca la lista (libres/ocupadas)
+        viewModel.loadTables()
+
+        Toast.makeText(this, "Mesa ${table.number} cerrada. Generando factura...", Toast.LENGTH_SHORT).show()
+
+        // === 4) Construir y GUARDAR la factura (antes de abrir la pantalla) ===
+        val subtotal = table.items.sumOf { it.subtotal }
+        val total = subtotal + tipAmount
+
+        val invoice = com.caferaquelita.restauranteapp.models.Invoice(
+            id = java.util.UUID.randomUUID().toString(),
+            invoiceNumber = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.getDefault())
+                .format(java.util.Date()),
+            tableId = table.id,
+            tableNumber = table.number,
+            waiterId = table.waiterId,
+            waiterName = table.waiterName,
+            items = table.items,          // items actuales de la mesa
+            subtotal = subtotal,
+            tax = 0.0,                    // ajusta si manejas IVA
+            tip = tipAmount,
+            total = total,                // el modelo expone total y totalAmount (getter)
+            paymentMethod = "Efectivo",   // cámbialo si luego preguntas el método
+            customerName = "",
+            customerDocument = ""
+        )
+
+        // Guardar en Firestore y sumar a caja
+        lifecycleScope.launch {
+            try {
+                invoiceRepo.saveInvoice(invoice)
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@TablesActivity,
+                    "Error al guardar factura: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        // 5) Abre la pantalla de factura
+        val intent = Intent(this, InvoiceActivity::class.java).apply {
+            putExtra("table_id", table.id)
+            putExtra("table_number", table.number)
+            putExtra("waiter_name", table.waiterName)
+            putExtra("tip_amount", tipAmount)
+            putExtra("invoice_id", invoice.id) // útil si luego quieres cargar esa factura
+        }
+        startActivity(intent)
+    }
+
+
+}

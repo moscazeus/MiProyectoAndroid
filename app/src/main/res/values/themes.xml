@@ -1,45 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Tema de Café Raquelita -->
-    <style name="Theme.CafeRaquelita" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Colores principales -->
+
+    <!-- Tema principal basado en MaterialComponents -->
+    <style name="Theme.CafeRaquelita" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Colores -->
         <item name="colorPrimary">@color/cafe_green</item>
-        <item name="colorPrimaryDark">@color/cafe_green_dark</item>
-        <item name="colorAccent">@color/cafe_yellow</item>
-        
-        <!-- Colores de fondo -->
+        <item name="colorPrimaryVariant">@color/cafe_green_dark</item>
+        <item name="colorSecondary">@color/cafe_yellow</item>
+
+        <!-- Fondo / status bar -->
         <item name="android:windowBackground">@color/background_light</item>
         <item name="android:statusBarColor">@color/cafe_green_dark</item>
-        
-        <!-- Colores de texto -->
+
+        <!-- Textos -->
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
-        
-        <!-- Estilo de botones -->
-        <item name="android:buttonStyle">@style/Widget.CafeRaquelita.Button</item>
-        
-        <!-- Estilo de Toolbar -->
+
+        <!-- Componentes -->
         <item name="toolbarStyle">@style/Widget.CafeRaquelita.Toolbar</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.CafeRaquelita.MaterialAlertDialog</item>
+        <item name="buttonStyle">@style/Widget.CafeRaquelita.Button</item>
     </style>
-    
-    <!-- Estilo para botones -->
-    <style name="Widget.CafeRaquelita.Button" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/button_cafe_raquelita</item>
+
+    <!-- Botón estilo Material -->
+    <style name="Widget.CafeRaquelita.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/cafe_green</item>
         <item name="android:textColor">@color/text_light</item>
         <item name="android:padding">12dp</item>
         <item name="android:textSize">16sp</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.CafeRaquelita.Button</item>
     </style>
-    
-    <!-- Estilo para Toolbar -->
-    <style name="Widget.CafeRaquelita.Toolbar" parent="Widget.AppCompat.Toolbar">
+
+    <!-- Esquinas redondeadas para botones -->
+    <style name="ShapeAppearanceOverlay.CafeRaquelita.Button">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <!-- Toolbar -->
+    <style name="Widget.CafeRaquelita.Toolbar" parent="Widget.MaterialComponents.Toolbar">
         <item name="android:background">@color/cafe_green</item>
-        <item name="android:titleTextColor">@color/text_light</item>
+        <item name="titleTextColor">@color/text_light</item>
+        <item name="subtitleTextColor">@color/text_light</item>
     </style>
-    
-    <!-- Estilo para diálogos -->
-    <style name="Dialog.CafeRaquelita" parent="Theme.AppCompat.Light.Dialog">
+
+    <!-- Overlay para MaterialAlertDialog -->
+    <style name="ThemeOverlay.CafeRaquelita.MaterialAlertDialog"
+        parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="colorPrimary">@color/cafe_green</item>
-        <item name="colorAccent">@color/cafe_yellow</item>
-        <item name="android:windowBackground">@color/background_light</item>
+        <item name="colorSecondary">@color/cafe_yellow</item>
     </style>
+
+    <!-- **Overlay genérico que pedía AAPT** -->
+    <style name="ShapeAppearanceOverlay.CafeRaquelita" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
 </resources>

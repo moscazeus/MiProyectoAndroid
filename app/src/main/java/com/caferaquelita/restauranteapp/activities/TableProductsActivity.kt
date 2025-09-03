@@ -21,6 +21,9 @@ import com.caferaquelita.restauranteapp.utils.Constants
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.NumberFormat
 import java.util.*
+import androidx.activity.addCallback
+
+
 
 /**
  * Actividad para gestionar productos de una mesa específica.
@@ -72,6 +75,7 @@ class TableProductsActivity : AppCompatActivity() {
         textViewTableInfo = findViewById(R.id.textViewTableInfo)
         textViewTotal = findViewById(R.id.textViewTotal)
         buttonCloseTable = findViewById(R.id.buttonCloseTable)
+        buttonCloseTable.visibility = View.GONE    // ← oculta el botón dentro de la mesa
         buttonSaveOrder = findViewById(R.id.buttonSaveOrder)
     }
 
@@ -96,10 +100,7 @@ class TableProductsActivity : AppCompatActivity() {
             saveOrderAndReturn()
         }
         
-        // Configurar botón de cerrar mesa
-        buttonCloseTable.setOnClickListener {
-            closeTable()
-        }
+
     }
 
     private fun setupRecyclerView() {
@@ -348,247 +349,26 @@ class TableProductsActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun closeTable() {
-        currentTable?.let { table ->
-            if (table.items.isEmpty()) {
-                Toast.makeText(this, "No hay productos en la mesa para generar factura.", Toast.LENGTH_LONG).show()
-                return
-            }
 
-            // Crear diálogo con botones visibles y colores
-            val dialog = AlertDialog.Builder(this)
-                .setTitle("Cerrar Mesa ${table.number}")
-                .setMessage("¿Qué deseas hacer?")
-                .setPositiveButton("Cerrar sin propina", null)
-                .setNeutralButton("Cerrar con propina", null)
-                .setNegativeButton("Cancelar", null)
-                .create()
 
-            dialog.setOnShowListener {
-                // Aplicar colores a los botones
-                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-                val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
 
-                // Botón "Cerrar sin propina" - Verde
-                positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
-                positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                positiveButton.text = "Cerrar sin propina"
 
-                // Botón "Cerrar con propina" - Azul
-                neutralButton.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark, null))
-                neutralButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                neutralButton.text = "Cerrar con propina"
-
-                // Botón "Cancelar" - Rojo
-                negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-                negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                negativeButton.text = "Cancelar"
-
-                // Configurar listeners
-                positiveButton.setOnClickListener {
-                    closeTableWithoutTip(table)
-                    dialog.dismiss()
-                }
-
-                neutralButton.setOnClickListener {
-                    showTipDialog(table)
-                    dialog.dismiss()
-                }
-
-                negativeButton.setOnClickListener {
-                    dialog.dismiss()
-                }
-            }
-
-            dialog.show()
-        }
-    }
-
-    private fun closeTableWithoutTip(table: Table) {
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Confirmar Cierre")
-            .setMessage("¿Estás seguro de que quieres cerrar la mesa ${table.number} sin propina?")
-            .setPositiveButton("Sí, Cerrar", null)
-            .setNegativeButton("Cancelar", null)
-            .create()
-
-        dialog.setOnShowListener {
-            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-
-            // Botón "Sí, Cerrar" - Verde
-            positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
-            positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            positiveButton.text = "Sí, Cerrar"
-
-            // Botón "Cancelar" - Rojo
-            negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-            negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            negativeButton.text = "Cancelar"
-
-            // Configurar listeners
-            positiveButton.setOnClickListener {
-                generateInvoiceAndCloseTable(table, 0.0)
-                dialog.dismiss()
-            }
-
-            negativeButton.setOnClickListener {
-                dialog.dismiss()
-            }
-        }
-
-        dialog.show()
-    }
-
-    private fun showTipDialog(table: Table) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_tip_input, null)
-        val editTextTip = dialogView.findViewById<EditText>(R.id.editTextTip)
-        
-        // Calcular propina estándar del 5%
-        val standardTip = (table.totalAmount * Constants.STANDARD_TIP_PERCENTAGE).toInt()
-        editTextTip.setText(standardTip.toString())
-        editTextTip.hint = "Propina estándar: $${standardTip} (5%)"
-        
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Agregar Propina")
-            .setView(dialogView)
-            .setPositiveButton("Sí (5%)", null)
-            .setNeutralButton("Personalizar", null)
-            .setNegativeButton("No", null)
-            .create()
-
-        dialog.setOnShowListener {
-            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-
-            // Botón "Sí (5%)" - Verde
-            positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
-            positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            positiveButton.text = "Sí (5%)"
-
-            // Botón "Personalizar" - Azul
-            neutralButton.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark, null))
-            neutralButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            neutralButton.text = "Personalizar"
-
-            // Botón "No" - Rojo
-            negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-            negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-            negativeButton.text = "No"
-
-            // Configurar listeners
-            positiveButton.setOnClickListener {
-                generateInvoiceAndCloseTable(table, standardTip.toDouble())
-                dialog.dismiss()
-            }
-            
-            neutralButton.setOnClickListener {
-                val customTip = editTextTip.text.toString().toDoubleOrNull() ?: standardTip.toDouble()
-                generateInvoiceAndCloseTable(table, customTip)
-                dialog.dismiss()
-            }
-
-            negativeButton.setOnClickListener {
-                generateInvoiceAndCloseTable(table, 0.0)
-                dialog.dismiss()
-            }
-        }
-
-        dialog.show()
-    }
 
     private fun showRemoveProductsDialog(table: Table) {
         // Navegar a la pantalla de gestión de productos (ya estamos ahí)
         Toast.makeText(this, "Usa los botones de quitar productos arriba", Toast.LENGTH_LONG).show()
     }
 
-    private fun generateInvoiceAndCloseTable(table: Table, tipAmount: Double) {
-        // Actualizar la mesa con la propina y cerrarla
-        viewModel.updateTableTip(table.id, tipAmount)
-        
-        // Cerrar la mesa inmediatamente
-        viewModel.closeTable(table.id)
-        
-        // Forzar actualización de datos
-        viewModel.loadTables()
-        
-        Toast.makeText(this, "Mesa ${table.number} cerrada. Generando factura...", Toast.LENGTH_SHORT).show()
-        
-        // Navegar a la actividad de facturación
-        val intent = Intent(this, InvoiceActivity::class.java).apply {
-            putExtra("table_id", table.id)
-            putExtra("table_number", table.number)
-            putExtra("waiter_name", table.waiterName)
-            putExtra("tip_amount", tipAmount)
-        }
-        startActivity(intent)
-        finish() // Cerrar esta actividad
-    }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                finish()   // ← reemplazo directo
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    override fun onBackPressed() {
-        // Al presionar atrás, preguntar si quiere guardar el pedido
-        currentTable?.let { table ->
-            if (table.items.isNotEmpty()) {
-                val dialog = AlertDialog.Builder(this)
-                    .setTitle("Salir sin guardar")
-                    .setMessage("¿Quieres guardar el pedido antes de salir?")
-                    .setPositiveButton("Guardar y Salir", null)
-                    .setNegativeButton("Salir sin guardar", null)
-                    .setNeutralButton("Cancelar", null)
-                    .create()
-
-                dialog.setOnShowListener {
-                    val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                    val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-
-                    // Botón "Guardar y Salir" - Verde
-                    positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
-                    positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                    positiveButton.text = "Guardar y Salir"
-
-                    // Botón "Salir sin guardar" - Rojo
-                    negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-                    negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                    negativeButton.text = "Salir sin guardar"
-
-                    // Botón "Cancelar" - Gris
-                    neutralButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null))
-                    neutralButton.setTextColor(getResources().getColor(android.R.color.white, null))
-                    neutralButton.text = "Cancelar"
-
-                    positiveButton.setOnClickListener {
-                        Toast.makeText(this, "Pedido guardado", Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                        super.onBackPressed()
-                    }
-
-                    negativeButton.setOnClickListener {
-                        dialog.dismiss()
-                        super.onBackPressed()
-                    }
-
-                    neutralButton.setOnClickListener {
-                        dialog.dismiss()
-                    }
-                }
-
-                dialog.show()
-            } else {
-                super.onBackPressed()
-            }
-        } ?: super.onBackPressed()
-    }
-} 
+}

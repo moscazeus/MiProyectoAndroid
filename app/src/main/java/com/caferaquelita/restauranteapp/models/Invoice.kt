@@ -1,5 +1,7 @@
 package com.caferaquelita.restauranteapp.models
 
+import com.google.firebase.Timestamp
+
 /**
  * Modelo de factura generada al cerrar una mesa.
  */
@@ -18,10 +20,14 @@ data class Invoice(
     val paymentMethod: String = "Efectivo",
     val customerName: String = "",
     val customerDocument: String = "",
-    val createdAt: Long = System.currentTimeMillis(),
+    val createdAt: Timestamp = Timestamp.now(),
     val pdfUrl: String? = null,
     val status: InvoiceStatus = InvoiceStatus.PAID
-)
+) {
+    // 👇 compatibilidad: algunos sitios usan "totalAmount"
+    val totalAmount: Double get() = total
+}
+
 
 enum class InvoiceStatus {
     PAID,

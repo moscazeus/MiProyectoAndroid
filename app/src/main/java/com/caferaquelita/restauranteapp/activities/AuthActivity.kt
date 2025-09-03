@@ -14,6 +14,7 @@ import com.caferaquelita.restauranteapp.R
 import com.caferaquelita.restauranteapp.viewmodels.AuthViewModel
 import androidx.core.widget.doAfterTextChanged
 
+
 /**
  * Actividad para login y registro de usuarios con roles de empleado y administrador.
  */

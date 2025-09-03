@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -16,12 +15,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.caferaquelita.restauranteapp.R
 import com.caferaquelita.restauranteapp.adapters.InvoiceItemAdapter
 import com.caferaquelita.restauranteapp.models.Invoice
-import com.caferaquelita.restauranteapp.models.Table
 import com.caferaquelita.restauranteapp.viewmodels.InvoiceViewModel
 import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 /**
  * Actividad para generar y mostrar facturas.
@@ -152,7 +151,7 @@ class InvoiceActivity : AppCompatActivity() {
     private fun displayInvoice(invoice: Invoice) {
         // Mostrar información básica de la factura
         textViewInvoiceNumber.text = invoice.invoiceNumber
-        textViewDate.text = dateFormat.format(Date(invoice.createdAt))
+        textViewDate.text = dateFormat.format(invoice.createdAt.toDate())
         textViewTableNumber.text = "Mesa: ${invoice.tableNumber}"
         textViewWaiterName.text = "Mesero: ${invoice.waiterName}"
         
@@ -246,13 +245,13 @@ class InvoiceActivity : AppCompatActivity() {
                         file
                     )
                     val intent = Intent(Intent.ACTION_VIEW)
-                    intent.setDataAndType(uri, "text/html")
+                    intent.setDataAndType(uri, "application/pdf")
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     startActivity(intent)
                 } else {
                     // Si es una URL remota
                     val intent = Intent(Intent.ACTION_VIEW)
-                    intent.setDataAndType(Uri.parse(pdfUrl), "text/html")
+                    intent.setDataAndType(Uri.parse(pdfUrl), "application/pdf")
                     intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
                     startActivity(intent)
                 }
@@ -267,38 +266,45 @@ class InvoiceActivity : AppCompatActivity() {
     private fun sharePdf() {
         try {
             val pdfUrl = viewModel.pdfUrl.value
-            if (pdfUrl != null) {
-                            val intent = Intent(Intent.ACTION_SEND)
-            intent.type = "text/html"
-                
-                // Si es un archivo local, usar FileProvider
-                if (pdfUrl.startsWith("file://")) {
-                    val file = File(pdfUrl.substring(7))
-                    val uri = androidx.core.content.FileProvider.getUriForFile(
-                        this,
-                        "${packageName}.fileprovider",
-                        file
-                    )
-                    intent.putExtra(Intent.EXTRA_STREAM, uri)
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                } else {
-                    intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(pdfUrl))
-                }
-                
-                intent.putExtra(Intent.EXTRA_SUBJECT, "Factura Café Raquelita")
-                startActivity(Intent.createChooser(intent, "Compartir factura"))
-            } else {
+            if (pdfUrl == null) {
                 Toast.makeText(this, "No hay archivo disponible", Toast.LENGTH_SHORT).show()
+                return
             }
+
+            // Archivo LOCAL -> adjuntar como PDF
+            if (pdfUrl.startsWith("file://")) {
+                val file = File(pdfUrl.removePrefix("file://"))
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    this, "${packageName}.fileprovider", file
+                )
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/pdf"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_SUBJECT, "Factura Café Raquelita")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(intent, "Compartir factura"))
+                return
+            }
+
+            // URL REMOTA -> compartir como texto
+            val shareLink = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, "Factura Café Raquelita")
+                putExtra(Intent.EXTRA_TEXT, pdfUrl)
+            }
+            startActivity(Intent.createChooser(shareLink, "Compartir factura"))
         } catch (e: Exception) {
             Toast.makeText(this, "No se pudo compartir el archivo: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                finish()   // ← reemplazo directo
                 true
             }
             else -> super.onOptionsItemSelected(item)

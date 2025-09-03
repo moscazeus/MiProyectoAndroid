@@ -47,22 +47,25 @@ class BillingActivity : AppCompatActivity() {
     }
 
     private fun showGenerateInvoiceDialog() {
-        Toast.makeText(this, "🧾 Generando factura con logo de Café Raquelita...", Toast.LENGTH_SHORT).show()
-        // TODO: Implementar generación de factura
+        // Abre la pantalla donde generas/ves la factura de una mesa
+        val intent = Intent(this, InvoiceActivity::class.java)
+        startActivity(intent)
     }
 
     private fun showInvoiceHistory() {
-        Toast.makeText(this, "📋 Mostrando historial de facturas...", Toast.LENGTH_SHORT).show()
-        // TODO: Implementar historial de facturas
+        val intent = Intent(this, InvoiceHistoryActivity::class.java)
+        startActivity(intent)
     }
+
 
     private fun showExportInvoices() {
-        Toast.makeText(this, "📤 Exportando facturas a PDF...", Toast.LENGTH_SHORT).show()
-        // TODO: Implementar exportación de facturas
+        val intent = Intent(this, InvoiceReportActivity::class.java)
+        startActivity(intent)
     }
 
+
     private fun showInvoiceSettings() {
-        Toast.makeText(this, "⚙️ Configuración de facturas...", Toast.LENGTH_SHORT).show()
-        // TODO: Implementar configuración de facturas
+        Toast.makeText(this, "Configuración de facturas próximamente", Toast.LENGTH_SHORT).show()
     }
+
 } 

@@ -5,6 +5,7 @@ package com.caferaquelita.restauranteapp.models
  */
 data class CashRegister(
     val id: String = "",
+    val userId: String = "", // ✅ NUEVO campo para identificar al usuario que abrió la caja
     val openingAmount: Double = 0.0,
     val currentAmount: Double = 0.0,
     val totalTips: Double = 0.0,
@@ -19,4 +20,4 @@ data class CashMovement(
     val amount: Double = 0.0,
     val type: String = "", // "withdrawal" o "deposit"
     val createdAt: Long = System.currentTimeMillis()
-) 
+)

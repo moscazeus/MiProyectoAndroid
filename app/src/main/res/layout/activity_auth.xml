@@ -7,6 +7,7 @@
     android:gravity="center"
     android:background="@color/background_light">
 
+
     <!-- Logo de Café Raquelita -->
     <ImageView
         android:layout_width="100dp"
@@ -15,13 +16,13 @@
         android:background="@drawable/logo_background"
         android:padding="8dp"
         android:layout_marginBottom="16dp"
-        android:contentDescription="Logo Café Raquelita" />
+        android:contentDescription="@string/logo_cd" />
 
     <!-- Título -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Café Raquelita"
+        android:text="@string/app_title"
         android:textSize="32sp"
         android:textStyle="bold"
         android:textColor="@color/cafe_green"
@@ -30,7 +31,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sistema de Gestión"
+        android:text="@string/app_subtitle"
         android:textSize="18sp"
         android:textColor="@color/text_secondary"
         android:layout_marginBottom="32dp" />
@@ -49,7 +50,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Email"
+            android:text="@string/label_email"
             android:textSize="16sp"
             android:textColor="@color/text_primary"
             android:layout_marginBottom="8dp" />
@@ -58,8 +59,10 @@
             android:id="@+id/editTextEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ingresa tu email"
+            android:hint="@string/hint_email"
             android:inputType="textEmailAddress"
+            android:autofillHints="emailAddress"
+            android:importantForAutofill="yes"
             android:layout_marginBottom="16dp"
             android:padding="16dp"
             android:background="@drawable/edit_text_background"
@@ -71,7 +74,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Contraseña"
+            android:text="@string/label_password"
             android:textSize="16sp"
             android:textColor="@color/text_primary"
             android:layout_marginBottom="8dp" />
@@ -80,8 +83,10 @@
             android:id="@+id/editTextPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ingresa tu contraseña"
+            android:hint="@string/hint_password"
             android:inputType="textPassword"
+            android:autofillHints="password"
+            android:importantForAutofill="yes"
             android:layout_marginBottom="24dp"
             android:padding="16dp"
             android:background="@drawable/edit_text_background"
@@ -108,7 +113,7 @@
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Iniciar Sesión"
+            android:text="@string/btn_login"
             android:background="@drawable/button_cafe_raquelita"
             android:textColor="@color/text_light"
             android:padding="16dp"
@@ -119,7 +124,7 @@
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Registrarse"
+            android:text="@string/btn_register"
             android:background="@drawable/button_logout"
             android:textColor="@color/cafe_red"
             android:padding="16dp"
@@ -131,7 +136,7 @@
             android:id="@+id/btnTestUsers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🧪 Probar Usuarios de Prueba"
+            android:text="@string/btn_test_users"
             android:background="@drawable/button_cafe_raquelita"
             android:textColor="@color/text_light"
             android:padding="12dp"
@@ -143,7 +148,7 @@
             android:id="@+id/btnTestPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🔍 Probar Campo Contraseña"
+            android:text="@string/btn_test_password"
             android:background="@drawable/button_logout"
             android:textColor="@color/cafe_red"
             android:padding="12dp"
@@ -155,13 +160,12 @@
             android:id="@+id/btnBypass"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🚀 ACCESO DIRECTO (Bypass)"
+            android:text="@string/btn_bypass"
             android:background="@drawable/button_cafe_raquelita"
             android:textColor="@color/text_light"
             android:padding="12dp"
             android:layout_marginBottom="16dp"
             android:textSize="14sp" />
-
     </LinearLayout>
 
     <!-- Información de roles -->
@@ -176,7 +180,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Roles Disponibles:"
+            android:text="@string/roles_title"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/cafe_green"
@@ -185,7 +189,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👑 Administrador - Acceso completo"
+            android:text="@string/role_admin"
             android:textSize="14sp"
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="4dp" />
@@ -193,7 +197,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👔 Gerente - Gestión y reportes"
+            android:text="@string/role_manager"
             android:textSize="14sp"
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="4dp" />
@@ -201,7 +205,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🪑 Mesero - Gestión de mesas"
+            android:text="@string/role_waiter"
             android:textSize="14sp"
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="4dp" />
@@ -209,7 +213,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👨‍🍳 Cocinero - Gestión de inventario"
+            android:text="@string/role_chef"
             android:textSize="14sp"
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="4dp" />
@@ -217,20 +221,18 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="💰 Cajero - Control de caja"
+            android:text="@string/role_cashier"
             android:textSize="14sp"
             android:textColor="@color/text_secondary" />
-
     </LinearLayout>
 
     <!-- Texto de información -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Gestiona tu restaurante de manera fácil y eficiente"
+        android:text="@string/info_footer"
         android:textSize="14sp"
         android:textColor="@color/text_secondary"
         android:gravity="center"
         android:layout_marginTop="16dp" />
-
-</LinearLayout> 
+</LinearLayout>

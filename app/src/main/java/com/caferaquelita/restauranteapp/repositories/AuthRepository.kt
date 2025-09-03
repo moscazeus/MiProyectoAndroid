@@ -21,12 +21,12 @@ class AuthRepository {
         return try {
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val user = result.user
-            
+
             if (user != null) {
                 // Obtener datos del usuario desde Firestore
                 val userDoc = usersCollection.document(user.uid).get().await()
                 val userData = userDoc.toObject(User::class.java)
-                
+
                 if (userData != null) {
                     // Actualizar último login
                     updateLastLogin(user.uid)
@@ -59,7 +59,7 @@ class AuthRepository {
             val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(account.idToken, null)
             val result = auth.signInWithCredential(credential).await()
             val user = result.user
-            
+
             if (user != null) {
                 val userData = User(
                     id = user.uid,
@@ -85,7 +85,7 @@ class AuthRepository {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user
-            
+
             if (user != null) {
                 val userData = User(
                     id = user.uid,
@@ -199,4 +199,5 @@ class AuthRepository {
     private suspend fun updateLastLogin(userId: String) {
         usersCollection.document(userId).update("lastLogin", Date()).await()
     }
-} 
+}
+

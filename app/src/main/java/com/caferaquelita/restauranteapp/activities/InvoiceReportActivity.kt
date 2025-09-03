@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import java.io.File
+import androidx.core.content.FileProvider
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -117,18 +119,38 @@ class InvoiceReportActivity : AppCompatActivity() {
     }
 
     private fun viewReport() {
-        val pdfUrl = viewModel.pdfUrl.value
-        if (pdfUrl != null) {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.setDataAndType(Uri.parse(pdfUrl), "application/pdf")
-                intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+        val pdfUrl = viewModel.pdfUrl.value ?: run {
+            Toast.makeText(this, "No hay reporte disponible", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            if (pdfUrl.startsWith("file://")) {
+                // Archivo local → usar FileProvider
+                val file = File(pdfUrl.removePrefix("file://"))
+                val uri = FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    file
+                )
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/pdf")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
                 startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, "No se pudo abrir el PDF", Toast.LENGTH_SHORT).show()
+            } else {
+                // URL remota → abrir por navegador/visor
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(Uri.parse(pdfUrl), "application/pdf")
+                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                }
+                startActivity(intent)
             }
+        } catch (e: Exception) {
+            Toast.makeText(this, "No se pudo abrir el PDF: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun showReportGeneratedDialog() {
         val dialog = AlertDialog.Builder(this)
@@ -180,24 +202,46 @@ class InvoiceReportActivity : AppCompatActivity() {
     }
 
     private fun shareReport() {
-        val pdfUrl = viewModel.pdfUrl.value
-        if (pdfUrl != null) {
-            try {
-                val intent = Intent(Intent.ACTION_SEND)
-                intent.type = "application/pdf"
-                intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(pdfUrl))
-                intent.putExtra(Intent.EXTRA_SUBJECT, "Reporte de Facturas Café Raquelita")
+        val pdfUrl = viewModel.pdfUrl.value ?: run {
+            Toast.makeText(this, "No hay reporte disponible", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            if (pdfUrl.startsWith("file://")) {
+                // Archivo local → adjuntar el PDF real
+                val file = File(pdfUrl.removePrefix("file://"))
+                val uri = FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    file
+                )
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/pdf"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_SUBJECT, "Reporte de Facturas Café Raquelita")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
                 startActivity(Intent.createChooser(intent, "Compartir reporte"))
-            } catch (e: Exception) {
-                Toast.makeText(this, "No se pudo compartir el reporte", Toast.LENGTH_SHORT).show()
+            } else {
+                // URL remota → compartir el enlace como texto
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "Reporte de Facturas Café Raquelita")
+                    putExtra(Intent.EXTRA_TEXT, pdfUrl)
+                }
+                startActivity(Intent.createChooser(intent, "Compartir reporte"))
             }
+        } catch (e: Exception) {
+            Toast.makeText(this, "No se pudo compartir el reporte: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)

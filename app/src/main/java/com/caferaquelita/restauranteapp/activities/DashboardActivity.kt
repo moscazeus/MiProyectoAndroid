@@ -12,6 +12,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.content.ContextCompat
 import com.caferaquelita.restauranteapp.R
 import com.caferaquelita.restauranteapp.adapters.TransactionAdapter
 import com.caferaquelita.restauranteapp.models.*
@@ -20,6 +21,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.widget.Toast
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+
+
+
 
 /**
  * Actividad principal del dashboard con métricas financieras y gestión de transacciones.
@@ -66,14 +74,52 @@ class DashboardActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
+        // 🔒 Solo ADMIN puede ver el Dashboard
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) {
+            Toast.makeText(this, "Sesión inválida", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
 
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { doc ->
+                val role = doc.getString("role") ?: "waiter"
+                if (role != "admin") {
+                    Toast.makeText(this, "Solo un administrador puede ver el dashboard", Toast.LENGTH_LONG).show()
+                    finish()
+                    return@addOnSuccessListener
+                }
+
+                // ✅ Si es ADMIN, recién aquí armamos toda la UI
+                initAdminUI()
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "No se pudo verificar el rol", Toast.LENGTH_LONG).show()
+                finish()
+            }
+
+
+
+    }
+
+    private fun initAdminUI() {
         setupViews()
         setupToolbar()
         setupRecyclerView()
         setupPeriodSelector()
         setupUI()
         observeViewModel()
+
+        // ⬇️ empieza a escuchar cambios en vivo (facturas de hoy, caja, etc.)
+        viewModel.startListening()
+        // ⬇️ y haz una carga manual por si el listener tarda
+        viewModel.refreshOnce()
     }
+
 
     private fun setupViews() {
         toolbar = findViewById(R.id.toolbar)
@@ -178,6 +224,30 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
+        // Estado de caja (mostrar en toolbar)
+        viewModel.cashOpen.observe(this) { isOpen ->
+            updateCashUi(
+                isOpen,
+                viewModel.cashInitial.value ?: 0.0,
+                viewModel.cashCurrent.value ?: 0.0
+            )
+        }
+        viewModel.cashInitial.observe(this) { initial ->
+            updateCashUi(
+                viewModel.cashOpen.value ?: false,
+                initial,
+                viewModel.cashCurrent.value ?: 0.0
+            )
+        }
+        viewModel.cashCurrent.observe(this) { current ->
+            updateCashUi(
+                viewModel.cashOpen.value ?: false,
+                viewModel.cashInitial.value ?: 0.0,
+                current
+            )
+        }
+
+
         viewModel.dashboardData.observe(this) { dashboardData ->
             updateDashboardMetrics(dashboardData)
         }
@@ -222,39 +292,74 @@ class DashboardActivity : AppCompatActivity() {
         textViewProfit.setTextColor(profitColor)
     }
 
+    private fun updateCashUi(isOpen: Boolean, initial: Double, current: Double) {
+        val status = if (isOpen) "Caja abierta" else "Caja cerrada"
+        // Muestra el estado de caja en el subtítulo del toolbar
+        toolbar.subtitle = "$status — Inicial: ${numberFormat.format(initial)} | Actual: ${numberFormat.format(current)}"
+
+        // (Opcional) deshabilita el FAB de transacciones si la caja está cerrada
+        fabAddTransaction.isEnabled = isOpen
+    }
+
+
     private fun updateEmptyState(isEmpty: Boolean) {
         textViewEmptyTransactions.visibility = if (isEmpty) View.VISIBLE else View.GONE
         recyclerViewTransactions.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
+
     private fun showAddTransactionDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_transaction, null)
         val radioGroupType = dialogView.findViewById<RadioGroup>(R.id.radioGroupType)
-        val radioButtonIncome = dialogView.findViewById<RadioButton>(R.id.radioButtonIncome)
-        val radioButtonExpense = dialogView.findViewById<RadioButton>(R.id.radioButtonExpense)
         val spinnerCategory = dialogView.findViewById<Spinner>(R.id.spinnerCategory)
         val spinnerPaymentMethod = dialogView.findViewById<Spinner>(R.id.spinnerPaymentMethod)
         val editTextAmount = dialogView.findViewById<EditText>(R.id.editTextAmount)
         val editTextDescription = dialogView.findViewById<EditText>(R.id.editTextDescription)
         val editTextNotes = dialogView.findViewById<EditText>(R.id.editTextNotes)
 
-        // Configurar spinner de método de pago
-        val paymentMethods = PaymentMethod.values().map { getPaymentMethodDisplayName(it.name) }
-        val paymentMethodAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
+        // --- 1) SPINNER MÉTODO DE PAGO: etiquetas ↔ enum ---
+        // Lista real de enums
+        val paymentEnums = PaymentMethod.values().toList()
+        // Etiquetas amigables para mostrar
+        val paymentLabels = paymentEnums.map { getPaymentMethodDisplayName(it.name) }
+        // Cargamos el spinner con etiquetas (no con los enums)
+        val paymentMethodAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentLabels)
         paymentMethodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerPaymentMethod.adapter = paymentMethodAdapter
 
+        // --- 2) Tipo y categoría seleccionados ---
         var selectedType = TransactionType.INCOME
         var selectedCategory = TransactionCategory.SALES
 
-        // Configurar listener para el tipo
+        // Función para poblar categorías según el tipo actual
+        fun populateCategories() {
+            val categories = viewModel.getCategoriesForType(selectedType)
+            val names = categories.map { getCategoryDisplayName(it) }
+            val catAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
+            catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinnerCategory.adapter = catAdapter
+            // Por defecto: la primera
+            selectedCategory = categories.first()
+            // Cuando el usuario cambie, actualizamos selectedCategory
+            spinnerCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    selectedCategory = categories[position]
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+        }
+
+        // Carga inicial de categorías (para INCOME)
+        populateCategories()
+
+        // Cuando cambie el tipo (Ingreso/Gasto) recargamos categorías
         radioGroupType.setOnCheckedChangeListener { _, checkedId ->
             selectedType = when (checkedId) {
                 R.id.radioButtonIncome -> TransactionType.INCOME
                 R.id.radioButtonExpense -> TransactionType.EXPENSE
                 else -> TransactionType.INCOME
             }
-            updateCategories(spinnerCategory, selectedType)
+            populateCategories()
         }
 
         val dialog = AlertDialog.Builder(this)
@@ -269,11 +374,11 @@ class DashboardActivity : AppCompatActivity() {
             val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
 
-            positiveButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_dark, null))
-            positiveButton.setTextColor(getResources().getColor(android.R.color.white, null))
+            positiveButton.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+            positiveButton.setTextColor(ContextCompat.getColor(this, android.R.color.white))
+            negativeButton.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_dark))
+            negativeButton.setTextColor(ContextCompat.getColor(this, android.R.color.white))
 
-            negativeButton.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark, null))
-            negativeButton.setTextColor(getResources().getColor(android.R.color.white, null))
 
             positiveButton.setOnClickListener {
                 val amount = editTextAmount.text.toString().toDoubleOrNull()
@@ -281,14 +386,17 @@ class DashboardActivity : AppCompatActivity() {
                 val notes = editTextNotes.text.toString().trim()
 
                 if (amount != null && amount > 0 && description.isNotEmpty()) {
+                    // ⬇️ Tomamos el enum real según el índice seleccionado
+                    val pmEnum = paymentEnums[spinnerPaymentMethod.selectedItemPosition]
+
                     val transaction = FinancialTransaction(
                         amount = amount,
                         type = selectedType,
                         category = selectedCategory,
                         description = description,
-                        paymentMethod = PaymentMethod.valueOf(spinnerPaymentMethod.selectedItem.toString()),
+                        paymentMethod = pmEnum,           // ✅ enum correcto (CASH, CARD…)
                         notes = notes,
-                        createdBy = "Usuario" // Por ahora hardcodeado
+                        createdBy = "Usuario"
                     )
                     viewModel.addTransaction(transaction)
                     dialog.dismiss()
@@ -297,13 +405,12 @@ class DashboardActivity : AppCompatActivity() {
                 }
             }
 
-            negativeButton.setOnClickListener {
-                dialog.dismiss()
-            }
+            negativeButton.setOnClickListener { dialog.dismiss() }
         }
 
         dialog.show()
     }
+
 
     private fun updateCategories(spinner: Spinner, type: TransactionType) {
         val categories = viewModel.getCategoriesForType(type)
@@ -369,15 +476,18 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun showDeleteTransactionDialog(transaction: FinancialTransaction) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle("Eliminar Transacción")
             .setMessage("¿Estás seguro de que quieres eliminar esta transacción?")
-            .setPositiveButton("Eliminar") { _, _ ->
+            .setPositiveButton("Sí") { _, _ ->
                 viewModel.deleteTransaction(transaction.id)
             }
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton("No", null)
             .show()
     }
+
+
+
 
     private fun showIncomeDetails() {
         val intent = Intent(this, IncomeDetailsActivity::class.java)
@@ -397,10 +507,15 @@ class DashboardActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                finish()   // ← reemplazo directo
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.stopListening()
     }
 } 

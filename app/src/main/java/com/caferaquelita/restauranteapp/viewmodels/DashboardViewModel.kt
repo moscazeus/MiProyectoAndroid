@@ -3,153 +3,201 @@ package com.caferaquelita.restauranteapp.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.caferaquelita.restauranteapp.models.*
+import com.caferaquelita.restauranteapp.repositories.DashboardRepository
 import com.caferaquelita.restauranteapp.repositories.FinancialRepository
-import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
 
 /**
  * ViewModel para el dashboard y gestión financiera.
+ * - Lee datos del Dashboard en vivo (facturas de hoy, mesas, caja).
+ * - Mantiene compatibilidad con tus transacciones (FinancialRepository).
  */
 class DashboardViewModel : ViewModel() {
-    
+
+    // NUEVO: repo de dashboard (stream + consultas)
+    private val dashboardRepository = DashboardRepository()
+
+    // EXISTENTE: repo de transacciones (lo mantenemos)
     private val financialRepository = FinancialRepository()
-    
-    // LiveData para el dashboard
+
+    // ---------- LiveData del Dashboard ----------
     private val _dashboardData = MutableLiveData<DashboardData>()
     val dashboardData: LiveData<DashboardData> = _dashboardData
-    
-    // LiveData para transacciones
-    private val _transactions = MutableLiveData<List<FinancialTransaction>>()
-    val transactions: LiveData<List<FinancialTransaction>> = _transactions
-    
-    // LiveData para estados de carga
-    private val _isLoading = MutableLiveData<Boolean>()
+
+    private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
-    
-    // LiveData para mensajes
-    private val _message = MutableLiveData<String>()
+
+    private val _message = MutableLiveData("")
     val message: LiveData<String> = _message
-    
-    // Período actual del dashboard
+
+    // Caja (estado y montos)
+    private val _cashOpen = MutableLiveData(false)
+    val cashOpen: LiveData<Boolean> = _cashOpen
+
+    private val _cashInitial = MutableLiveData(0.0)
+    val cashInitial: LiveData<Double> = _cashInitial
+
+    private val _cashCurrent = MutableLiveData(0.0)
+    val cashCurrent: LiveData<Double> = _cashCurrent
+
+    // ---------- LiveData de transacciones ----------
+    private val _transactions = MutableLiveData<List<FinancialTransaction>>(emptyList())
+    val transactions: LiveData<List<FinancialTransaction>> = _transactions
+
+    // Período actual (por compatibilidad con tu UI)
     private var currentPeriod = "today"
     private var currentDateRange = DateRange()
-    
+
+    // Job del stream en vivo para poder cancelarlo
+    private var liveJob: kotlinx.coroutines.Job? = null
+
     init {
-        loadDashboardData()
+        // Carga inicial + escucha en vivo
+        refreshOnce()
+        startListening()
         loadTransactions()
     }
-    
+
+    // === DASHBOARD ===
+
+    /** Escucha EN VIVO facturas de hoy + mesas + caja. */
+    fun startListening() {
+        // Cancela si ya había un listener activo
+        liveJob?.cancel()
+
+        liveJob = viewModelScope.launch(Dispatchers.IO) {
+            dashboardRepository.listenDashboard().collectLatest { triple ->
+                val (data, isOpen, cashPair) = triple
+                _dashboardData.postValue(data)
+                _cashOpen.postValue(isOpen)
+                _cashInitial.postValue(cashPair.first)
+                _cashCurrent.postValue(cashPair.second)
+            }
+        }
+    }
+
+    /** Carga manual (pull-to-refresh). */
+    fun refreshOnce() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isLoading.postValue(true)
+            try {
+                val (data, isOpen, cashPair) = dashboardRepository.fetchOnce()
+                _dashboardData.postValue(data)
+                _cashOpen.postValue(isOpen)
+                _cashInitial.postValue(cashPair.first)
+                _cashCurrent.postValue(cashPair.second)
+                _message.postValue("")
+            } catch (e: Exception) {
+                _message.postValue(e.message ?: "Error al cargar dashboard")
+            } finally {
+                _isLoading.postValue(false)
+            }
+        }
+    }
+
     /**
-     * Carga los datos del dashboard para el período especificado.
+     * Compat: si tu UI pide “loadDashboardData(period)”, la redirigimos a refreshOnce()
+     * y calculamos el rango solo para exponerlo si alguien lo lee.
      */
     fun loadDashboardData(period: String = "today") {
-        _isLoading.value = true
         currentPeriod = period
-        
-        // Calcular el rango de fechas según el período
-        val calendar = Calendar.getInstance()
-        val endDate = calendar.time
-        val startDate = when (period) {
+
+        val cal = Calendar.getInstance()
+        val end = cal.time
+        val start: Date = when (period) {
             "today" -> {
-                calendar.set(Calendar.HOUR_OF_DAY, 0)
-                calendar.set(Calendar.MINUTE, 0)
-                calendar.set(Calendar.SECOND, 0)
-                calendar.time
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                cal.time
             }
-            "week" -> {
-                calendar.add(Calendar.DAY_OF_YEAR, -7)
-                calendar.time
-            }
-            "month" -> {
-                calendar.add(Calendar.MONTH, -1)
-                calendar.time
-            }
-            "year" -> {
-                calendar.add(Calendar.YEAR, -1)
-                calendar.time
-            }
+            "week" -> { cal.add(Calendar.DAY_OF_YEAR, -7); cal.time }
+            "month" -> { cal.add(Calendar.MONTH, -1); cal.time }
+            "year" -> { cal.add(Calendar.YEAR, -1); cal.time }
             else -> {
-                calendar.set(Calendar.HOUR_OF_DAY, 0)
-                calendar.set(Calendar.MINUTE, 0)
-                calendar.set(Calendar.SECOND, 0)
-                calendar.time
+                cal.set(Calendar.HOUR_OF_DAY, 0)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                cal.time
             }
         }
-        
-        currentDateRange = DateRange(startDate, endDate)
-        
-        // Cargar datos desde el repositorio
-        financialRepository.getDashboardData(startDate, endDate) { dashboardData ->
-            _dashboardData.value = dashboardData
-            _isLoading.value = false
-        }
+        currentDateRange = DateRange(start, end)
+
+        // Por ahora los KPIs los calculamos para HOY/mes dentro del repo.
+        // Si luego quieres filtros por periodo, los agregamos al repo.
+        refreshOnce()
     }
-    
-    /**
-     * Carga las transacciones financieras.
-     */
+
+    /** Permite a la Activity parar el stream en onDestroy(). */
+    fun stopListening() {
+        liveJob?.cancel()
+        liveJob = null
+    }
+
+    fun getCurrentPeriod(): String = currentPeriod
+    fun getCurrentDateRange(): DateRange = currentDateRange
+
+    // === TRANSACCIONES (se mantiene tu lógica actual) ===
+
     fun loadTransactions() {
         _isLoading.value = true
-        financialRepository.getTransactions { transactions ->
-            _transactions.value = transactions
+        financialRepository.getTransactions { list ->
+            _transactions.value = list
             _isLoading.value = false
         }
     }
-    
-    /**
-     * Agrega una nueva transacción financiera.
-     */
+
     fun addTransaction(transaction: FinancialTransaction) {
         _isLoading.value = true
         financialRepository.addTransaction(transaction) { success ->
             if (success) {
                 _message.value = "Transacción agregada exitosamente"
                 loadTransactions()
-                loadDashboardData(currentPeriod)
+                refreshOnce()
             } else {
                 _message.value = "Error al agregar la transacción"
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
-    
-    /**
-     * Actualiza una transacción existente.
-     */
+
     fun updateTransaction(transaction: FinancialTransaction) {
         _isLoading.value = true
         financialRepository.updateTransaction(transaction) { success ->
             if (success) {
                 _message.value = "Transacción actualizada exitosamente"
                 loadTransactions()
-                loadDashboardData(currentPeriod)
+                refreshOnce()
             } else {
                 _message.value = "Error al actualizar la transacción"
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
-    
-    /**
-     * Elimina una transacción.
-     */
+
     fun deleteTransaction(transactionId: String) {
         _isLoading.value = true
         financialRepository.deleteTransaction(transactionId) { success ->
             if (success) {
                 _message.value = "Transacción eliminada exitosamente"
                 loadTransactions()
-                loadDashboardData(currentPeriod)
+                refreshOnce()
             } else {
                 _message.value = "Error al eliminar la transacción"
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
-    
-    /**
-     * Obtiene las categorías de transacciones según el tipo.
-     */
+
+    /** Categorías por tipo (igual que antes). */
     fun getCategoriesForType(type: TransactionType): List<TransactionCategory> {
         return when (type) {
             TransactionType.INCOME -> listOf(
@@ -173,14 +221,4 @@ class DashboardViewModel : ViewModel() {
             )
         }
     }
-    
-    /**
-     * Obtiene el período actual del dashboard.
-     */
-    fun getCurrentPeriod(): String = currentPeriod
-    
-    /**
-     * Obtiene el rango de fechas actual.
-     */
-    fun getCurrentDateRange(): DateRange = currentDateRange
-} 
+}

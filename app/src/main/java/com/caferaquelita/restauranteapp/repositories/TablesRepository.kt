@@ -59,6 +59,12 @@ class TablesRepository {
         }
     }
 
+    // --- Helper: total = suma subtotales + propina ---
+    private fun calcTotal(items: List<TableItem>, tip: Double): Double {
+        return items.sumOf { it.subtotal } + tip
+    }
+
+
     /**
      * Abrir una mesa
      */
@@ -129,12 +135,24 @@ class TablesRepository {
                 subtotal = product.price * quantity
             )
 
-            // Agregar el producto a la lista de items
+            // Agregar o incrementar producto si ya existe
             val updatedItems = table.items.toMutableList()
-            updatedItems.add(tableItem)
+            val idx = updatedItems.indexOfFirst { it.productId == product.id }
+            if (idx >= 0) {
+                val current = updatedItems[idx]
+                val newQty = current.quantity + quantity
+                updatedItems[idx] = current.copy(
+                    quantity = newQty,
+                    subtotal = current.productPrice * newQty
+                )
+            } else {
+                updatedItems.add(tableItem)
+            }
+
 
             // Calcular nuevo total
-            val newTotal = updatedItems.sumOf { it.subtotal } + table.tipAmount
+            val newTotal = calcTotal(updatedItems, table.tipAmount)
+
 
             // Actualizar la mesa
             tableDoc.reference.update(
@@ -176,7 +194,8 @@ class TablesRepository {
             }
 
             // Calcular nuevo total
-            val newTotal = updatedItems.sumOf { it.subtotal } + table.tipAmount
+            val newTotal = calcTotal(updatedItems, table.tipAmount)
+
 
             // Actualizar la mesa
             tableDoc.reference.update(
@@ -212,7 +231,8 @@ class TablesRepository {
             val updatedItems = table.items.filter { it.productId !in productIdsToRemove }
 
             // Calcular nuevo total
-            val newTotal = updatedItems.sumOf { it.subtotal } + table.tipAmount
+            val newTotal = calcTotal(updatedItems, table.tipAmount)
+
 
             // Actualizar la mesa
             tableDoc.reference.update(
@@ -245,7 +265,8 @@ class TablesRepository {
             val updatedItems = table.items.filter { it.productId != productId }
 
             // Calcular nuevo total
-            val newTotal = updatedItems.sumOf { it.subtotal } + table.tipAmount
+            val newTotal = calcTotal(updatedItems, table.tipAmount)
+
 
             // Actualizar la mesa
             tableDoc.reference.update(
@@ -264,18 +285,21 @@ class TablesRepository {
     /**
      * Cerrar una mesa
      */
+    /**
+     * Cerrar una mesa con verificación sobre datos frescos
+     */
     suspend fun closeTable(tableId: String): Result<Table> {
         return try {
-            val tableDoc = tablesCollection.document(tableId).get().await()
-            if (!tableDoc.exists()) {
-                return Result.failure(Exception("Mesa no encontrada"))
+            val fresh = getTableFresh(tableId)
+                ?: return Result.failure(Exception("Mesa no encontrada"))
+
+            // Si no hay productos, devolvemos error y NO cerramos.
+            if (fresh.items.isEmpty()) {
+                return Result.failure(IllegalStateException("EMPTY_ITEMS"))
             }
 
-            val table = tableDoc.toObject(Table::class.java)?.copy(id = tableDoc.id)
-                ?: return Result.failure(Exception("Error al obtener datos de la mesa"))
-
             // Actualizar estado de la mesa
-            tableDoc.reference.update(
+            tablesCollection.document(tableId).update(
                 mapOf(
                     "status" to TableStatus.FREE.name,
                     "waiterId" to "",
@@ -287,19 +311,22 @@ class TablesRepository {
                 )
             ).await()
 
-            Result.success(table.copy(
-                status = TableStatus.FREE,
-                waiterId = "",
-                waiterName = "",
-                openTime = null,
-                totalAmount = 0.0,
-                tipAmount = 0.0,
-                items = emptyList()
-            ))
+            Result.success(
+                fresh.copy(
+                    status = TableStatus.FREE,
+                    waiterId = "",
+                    waiterName = "",
+                    openTime = null,
+                    totalAmount = 0.0,
+                    tipAmount = 0.0,
+                    items = emptyList()
+                )
+            )
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
 
     /**
      * Obtener mesa por ID
@@ -326,17 +353,24 @@ class TablesRepository {
     suspend fun updateTableTip(tableId: String, tipAmount: Double): Result<Table> {
         return try {
             val tableRef = db.collection("tables").document(tableId)
+            val table = getTableById(tableId).getOrNull()
             val updateData = mapOf(
                 "tipAmount" to tipAmount,
-                "totalAmount" to (getTableById(tableId).getOrNull()?.let { table ->
-                    table.items.sumOf { it.subtotal } + tipAmount
-                } ?: tipAmount)
+                "totalAmount" to if (table != null) calcTotal(table.items, tipAmount) else tipAmount
             )
-            
+
+
             tableRef.update(updateData).await()
             getTableById(tableId)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+    // Lee la mesa DIRECTO de Firestore y devuelve el objeto con el id copiado
+    suspend fun getTableFresh(tableId: String): Table? {
+        val doc = tablesCollection.document(tableId).get().await()
+        if (!doc.exists()) return null
+        return doc.toObject(Table::class.java)?.copy(id = doc.id)
+    }
+
 } 

@@ -13,6 +13,9 @@ import com.caferaquelita.restauranteapp.utils.Constants
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.google.firebase.Timestamp
+import java.util.UUID
+
 
 /**
  * ViewModel para la gestión de facturas.
@@ -66,8 +69,8 @@ class InvoiceViewModel(private val context: Context) : ViewModel() {
                             _errorMessage.value = "La mesa no tiene productos para facturar"
                             return@launch
                         }
-                        
-                        val invoice = createInvoiceFromTable(table, tableNumber, waiterName, 0.0)
+
+                        val invoice = createInvoiceFromTable(table, tableNumber, waiterName, tipAmount)
                         _invoice.value = invoice
                     } else {
                         _errorMessage.value = "No se pudo obtener la información de la mesa"
@@ -158,26 +161,32 @@ class InvoiceViewModel(private val context: Context) : ViewModel() {
         val tax = 0.0 // IVA ya incluido en precios
         
         // Si no se proporciona propina, usar el 5% estándar
-        val tip = if (tipAmount > 0) tipAmount else (subtotal * Constants.STANDARD_TIP_PERCENTAGE)
+        // Regla: si tipAmount < 0 => calcular 5% automático; si es >= 0 => respetar (0.0 = sin propina)
+        val tip = if (tipAmount < 0) {
+            subtotal * Constants.STANDARD_TIP_PERCENTAGE
+        } else {
+            tipAmount
+        }
         val total = subtotal + tip
-        
+
         return Invoice(
-            id = table.id,
+            id = UUID.randomUUID().toString(),   // ← ID único de la factura
             invoiceNumber = invoiceNumber,
             tableId = table.id,
             tableNumber = tableNumber,
             waiterId = table.waiterId,
             waiterName = waiterName,
-            items = table.items, // Incluir todos los productos de la mesa
+            items = table.items.map { it.copy() },   // clona para evitar mezclas posteriores
+            // productos actuales de la mesa
             subtotal = subtotal,
             tax = tax,
             tip = tip,
             total = total,
-            createdAt = System.currentTimeMillis()
+            createdAt = Timestamp.now()          // ← ahora es Timestamp, no Long
         )
     }
 
-    /**
+        /**
      * Generar número de factura único.
      */
     private fun generateInvoiceNumber(): String {
@@ -199,8 +208,9 @@ class InvoiceViewModel(private val context: Context) : ViewModel() {
      */
     override fun onCleared() {
         super.onCleared()
-        _invoice.value = null
+        // _invoice.value = null  // ← quita esta línea
         _pdfUrl.value = null
         _errorMessage.value = null
     }
+
 } 

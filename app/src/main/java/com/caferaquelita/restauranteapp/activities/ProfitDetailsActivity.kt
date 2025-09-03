@@ -191,7 +191,7 @@ class ProfitDetailsActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                finish()   // ← reemplazo directo
                 true
             }
             else -> super.onOptionsItemSelected(item)

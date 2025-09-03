@@ -1,3 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RestauranteAPP</string>
+
+    <!-- Login / Auth -->
+    <string name="app_title">Café Raquelita</string>
+    <string name="app_subtitle">Sistema de Gestión</string>
+    <string name="logo_cd">Logo Café Raquelita</string>
+
+    <string name="label_email">Email</string>
+    <string name="hint_email">Ingresa tu email</string>
+    <string name="label_password">Contraseña</string>
+    <string name="hint_password">Ingresa tu contraseña</string>
+
+    <string name="btn_login">Iniciar Sesión</string>
+    <string name="btn_register">Registrarse</string>
+    <string name="btn_test_users">🧪 Probar Usuarios de Prueba</string>
+    <string name="btn_test_password">🔍 Probar Campo Contraseña</string>
+    <string name="btn_bypass">🚀 ACCESO DIRECTO (Bypass)</string>
+
+    <string name="roles_title">Roles Disponibles:</string>
+    <string name="role_admin">👑 Administrador - Acceso completo</string>
+    <string name="role_manager">👔 Gerente - Gestión y reportes</string>
+    <string name="role_waiter">🪑 Mesero - Gestión de mesas</string>
+    <string name="role_chef">👨‍🍳 Cocinero - Gestión de inventario</string>
+    <string name="role_cashier">💰 Cajero - Control de caja</string>
+
+    <string name="info_footer">Gestiona tu restaurante de manera fácil y eficiente</string>
+
+    <!-- (lo demás de mesas que ya tenías) -->
+    <string name="tables_free">MESAS LIBRES</string>
+    <string name="tables_occupied">MESAS OCUPADAS</string>
+    <string name="tables_empty_title">No hay mesas disponibles</string>
+    <string name="tables_empty_subtitle">Las mesas se crean automáticamente</string>
+    <string name="zero">0</string>
+    <string name="fab_add_table">Agregar mesa</string>
+    <string name="table_info_sample">Mesa 1 - Mesero</string>
+    <string name="total_prefix_sample">Total: $0</string>
+    <string name="no_products_table">No hay productos en esta mesa</string>
+    <string name="tap_plus_to_add">Toca el botón + para agregar productos</string>
+    <string name="save_order_caps">GUARDAR PEDIDO</string>
+    <string name="close_table_caps">CERRAR MESA</string>
+    <string name="desc_table_empty_illustration">Ilustración decorativa de mesa vacía</string>
+    <string name="fab_add_product">Agregar producto</string>
+    <string name="desc_tables_empty_illustration">Ilustración decorativa de mesas</string>
+
+    <!-- Dialogos Apertura/Cierre/Propina -->
+    <string name="dlg_open_table_title">Abrir Mesa %1$d</string>
+    <string name="dlg_open_table_msg">Ingresa el nombre del mesero que atenderá esta mesa:</string>
+    <string name="dlg_open_table_ok">Abrir Mesa</string>
+    <string name="dlg_cancel">Cancelar</string>
+
+    <string name="dlg_close_table_title">Cerrar Mesa %1$d</string>
+    <string name="dlg_close_table_msg">¿Qué deseas hacer?</string>
+    <string name="dlg_close_no_tip">Cerrar sin propina</string>
+    <string name="dlg_close_with_tip">Cerrar con propina</string>
+
+    <string name="dlg_confirm_close_title">Confirmar Cierre</string>
+    <string name="dlg_confirm_close_msg">¿Estás seguro de que quieres cerrar la mesa %1$d sin propina?</string>
+    <string name="dlg_yes_close">Sí, Cerrar</string>
+
+    <string name="dlg_add_product_title">Agregar Producto a Mesa %1$d</string>
+    <string name="dlg_add_product_ok">Agregar Producto</string>
+
+    <string name="dlg_tip_title">Agregar Propina</string>
+    <string name="dlg_tip_yes_5">Sí (5%)</string>
+    <string name="dlg_tip_custom">Personalizar</string>
+    <string name="dlg_tip_no">No</string>
+    <string name="hint_tip_standard">Propina estándar: $%1$d (5%)</string>
+
+    <!-- Toasters y textos con variables -->
+    <string name="toast_opening_table">Abriendo mesa %1$d con mesero: %2$s</string>
+    <string name="toast_no_products">No hay productos en la mesa para generar factura.</string>
+    <string name="toast_adding_product">Agregando %1$dx %2$s a Mesa %3$d</string>
+    <string name="toast_closing_generating_invoice">Mesa %1$d cerrada. Generando factura...</string>
+    <string name="toast_enter_waiter">Por favor ingresa el nombre del mesero</string>
+
 </resources>

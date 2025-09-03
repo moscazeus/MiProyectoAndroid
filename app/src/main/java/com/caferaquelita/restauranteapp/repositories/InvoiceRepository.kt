@@ -4,10 +4,18 @@ import com.caferaquelita.restauranteapp.models.Invoice
 import com.caferaquelita.restauranteapp.utils.PdfGenerator
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.Timestamp
+import com.caferaquelita.restauranteapp.repositories.CashRegisterRepository
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import com.google.firebase.firestore.FieldValue
+
+
+
+
 
 /**
  * Repositorio para la gestión de facturas.
@@ -40,14 +48,11 @@ class InvoiceRepository(private val context: Context) {
         return try {
             // Obtener facturas de la fecha específica
             val invoices = getInvoicesByDate(date)
-            
-            if (invoices.isEmpty()) {
-                throw Exception("No hay facturas para la fecha seleccionada")
-            }
-            
-            // Generar archivo del reporte
+
+            // Generar archivo del reporte (aunque esté vacío)
             val pdfFile = pdfGenerator.generateInvoiceReportPdf(invoices, date)
-            
+
+
             // Retornar URL del archivo local
             "file://${pdfFile.absolutePath}"
         } catch (e: Exception) {
@@ -56,15 +61,27 @@ class InvoiceRepository(private val context: Context) {
     }
 
     /**
-     * Guardar factura en Firebase.
+     * Guardar factura en Firebase y actualizar caja.
      */
     suspend fun saveInvoice(invoice: Invoice) {
         try {
-            invoicesCollection.document(invoice.id).set(invoice).await()
+            // 1) sellamos con Timestamp
+            val toSave = invoice.copy(createdAt = Timestamp.now())
+
+            // 2) guardamos en Firestore
+            invoicesCollection.document(toSave.id).set(toSave).await()
+
+            // 3) sumamos a la caja en el doc "cash/status" (crea el campo si existe)
+            firestore.collection("cash")
+                .document("status")
+                .update("current", FieldValue.increment(toSave.total))
+                .await()
+
         } catch (e: Exception) {
             throw Exception("Error al guardar factura: ${e.message}")
         }
     }
+
 
     /**
      * Obtener factura por ID.
@@ -89,7 +106,11 @@ class InvoiceRepository(private val context: Context) {
      */
     suspend fun getAllInvoices(): Result<List<Invoice>> {
         return try {
-            val snapshot = invoicesCollection.orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING).get().await()
+            val snapshot = invoicesCollection
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
             val invoices = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Invoice::class.java)?.copy(id = doc.id)
             }
@@ -104,24 +125,24 @@ class InvoiceRepository(private val context: Context) {
      */
     suspend fun getInvoicesByDate(date: Date): List<Invoice> {
         return try {
-            val calendar = Calendar.getInstance()
-            calendar.time = date
-            calendar.set(Calendar.HOUR_OF_DAY, 0)
-            calendar.set(Calendar.MINUTE, 0)
-            calendar.set(Calendar.SECOND, 0)
-            calendar.set(Calendar.MILLISECOND, 0)
-            val startOfDay = calendar.timeInMillis
-            
-            calendar.add(Calendar.DAY_OF_MONTH, 1)
-            val endOfDay = calendar.timeInMillis
-            
+            val cal = Calendar.getInstance().apply {
+                time = date
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val start = Timestamp(cal.time)
+            cal.add(Calendar.DAY_OF_MONTH, 1)
+            val end = Timestamp(cal.time)
+
             val snapshot = invoicesCollection
-                .whereGreaterThanOrEqualTo("createdAt", startOfDay)
-                .whereLessThan("createdAt", endOfDay)
-                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .whereGreaterThanOrEqualTo("createdAt", start)
+                .whereLessThan("createdAt", end)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            
+
             snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Invoice::class.java)?.copy(id = doc.id)
             }
@@ -130,33 +151,37 @@ class InvoiceRepository(private val context: Context) {
         }
     }
 
+
     /**
      * Obtener facturas por rango de fechas.
      */
     suspend fun getInvoicesByDateRange(startDate: Date, endDate: Date): List<Invoice> {
         return try {
-            val calendar = Calendar.getInstance()
-            calendar.time = startDate
-            calendar.set(Calendar.HOUR_OF_DAY, 0)
-            calendar.set(Calendar.MINUTE, 0)
-            calendar.set(Calendar.SECOND, 0)
-            calendar.set(Calendar.MILLISECOND, 0)
-            val startOfDay = calendar.timeInMillis
-            
-            calendar.time = endDate
-            calendar.set(Calendar.HOUR_OF_DAY, 23)
-            calendar.set(Calendar.MINUTE, 59)
-            calendar.set(Calendar.SECOND, 59)
-            calendar.set(Calendar.MILLISECOND, 999)
-            val endOfDay = calendar.timeInMillis
-            
+            val calStart = Calendar.getInstance().apply {
+                time = startDate
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val calEnd = Calendar.getInstance().apply {
+                time = endDate
+                set(Calendar.HOUR_OF_DAY, 23)
+                set(Calendar.MINUTE, 59)
+                set(Calendar.SECOND, 59)
+                set(Calendar.MILLISECOND, 999)
+            }
+
+            val startTs = Timestamp(calStart.time)
+            val endTs = Timestamp(calEnd.time)
+
             val snapshot = invoicesCollection
-                .whereGreaterThanOrEqualTo("createdAt", startOfDay)
-                .whereLessThanOrEqualTo("createdAt", endOfDay)
-                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .whereGreaterThanOrEqualTo("createdAt", startTs)
+                .whereLessThanOrEqualTo("createdAt", endTs)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            
+
             snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Invoice::class.java)?.copy(id = doc.id)
             }
@@ -164,4 +189,5 @@ class InvoiceRepository(private val context: Context) {
             emptyList()
         }
     }
-} 
+
+}

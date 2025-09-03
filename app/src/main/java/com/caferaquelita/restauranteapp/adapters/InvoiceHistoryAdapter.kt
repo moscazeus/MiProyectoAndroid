@@ -42,17 +42,18 @@ class InvoiceHistoryAdapter(
 
     override fun onBindViewHolder(holder: InvoiceHistoryViewHolder, position: Int) {
         val invoice = invoices[position]
-        
+
         holder.textViewInvoiceNumber.text = "Factura #${invoice.invoiceNumber}"
-        holder.textViewDate.text = "Fecha: ${dateFormat.format(Date(invoice.createdAt))}"
+        holder.textViewDate.text = "Fecha: ${dateFormat.format(invoice.createdAt.toDate())}"
+
         holder.textViewTableNumber.text = "Mesa: ${invoice.tableNumber}"
         holder.textViewWaiterName.text = "Mesero: ${invoice.waiterName}"
         holder.textViewTotal.text = "Total: ${numberFormat.format(invoice.total)}"
-        
+
         // Mostrar resumen de productos
         if (invoice.items.isNotEmpty()) {
-            val productSummary = invoice.items.take(3).joinToString(", ") { 
-                "${it.quantity}x ${it.productName}" 
+            val productSummary = invoice.items.take(3).joinToString(", ") {
+                "${it.quantity}x ${it.productName}"
             }
             val remainingCount = invoice.items.size - 3
             val summary = if (remainingCount > 0) {
@@ -65,7 +66,7 @@ class InvoiceHistoryAdapter(
         } else {
             holder.textViewProductsSummary.visibility = View.GONE
         }
-        
+
         holder.itemView.setOnClickListener {
             onInvoiceClick(invoice)
         }
@@ -74,7 +75,9 @@ class InvoiceHistoryAdapter(
     override fun getItemCount(): Int = invoices.size
 
     fun updateInvoices(newInvoices: List<Invoice>) {
-        invoices = newInvoices
+        val sorted = newInvoices.sortedByDescending { it.createdAt.toDate().time }
+        invoices = sorted
         notifyDataSetChanged()
     }
-} 
+
+}

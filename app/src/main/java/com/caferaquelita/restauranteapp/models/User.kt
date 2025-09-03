@@ -13,30 +13,35 @@ data class User(
     val isActive: Boolean = true,
     val hireDate: Date = Date(),
     val lastLogin: Date? = null,
-    val permissions: List<String> = emptyList()
+    val permissions: Map<String, Boolean> = emptyMap()
+
 ) {
     /**
      * Verificar si el usuario tiene un permiso específico
      */
     fun hasPermission(permission: String): Boolean {
-        return when (role) {
-            "admin" -> true // Administrador tiene todos los permisos
-            "manager" -> permission in listOf(
-                "manage_tables", "manage_inventory", "view_reports", 
-                "manage_cash_register", "generate_invoices", "manage_employees"
-            )
-            "waiter" -> permission in listOf(
-                "manage_tables", "generate_invoices", "view_reports"
-            )
-            "chef" -> permission in listOf(
-                "manage_inventory", "view_reports"
-            )
-            "cashier" -> permission in listOf(
-                "manage_cash_register", "generate_invoices", "view_reports"
-            )
-            else -> false
-        }
+        // 1) Si es admin, tiene todos los permisos.
+        if (isAdmin()) return true
+
+        // 2) Probamos con la clave tal cual, en minúsculas y en snake_case.
+        val keyOriginal   = permission
+        val keyLower      = permission.trim().lowercase()
+        val keySnake      = camelToSnake(permission)
+
+        return permissions[keyOriginal] == true ||
+                permissions[keyLower]   == true ||
+                permissions[keySnake]   == true
     }
+
+    // Convierte "manageTables" -> "manage_tables", y normaliza guiones/espacios.
+    private fun camelToSnake(s: String): String =
+        s.trim()
+            .replace(Regex("([a-z])([A-Z]+)"), "$1_$2")
+            .replace(Regex("[-\\s]+"), "_")
+            .lowercase()
+
+
+
 
     /**
      * Obtener el nombre del rol en español

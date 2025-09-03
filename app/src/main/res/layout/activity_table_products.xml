@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="Typos"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/background_light">
 
-    <!-- Toolbar mejorado -->
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -14,9 +17,9 @@
         android:background="@color/cafe_green"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
-    <!-- Información de la mesa mejorada -->
+    <!-- Encabezado de mesa -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -29,35 +32,34 @@
             android:id="@+id/textViewTableInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Mesa 1 - Mesero"
+            android:text="@string/table_info_sample"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/white"
-            android:gravity="center" />
+            android:gravity="center"/>
 
         <TextView
             android:id="@+id/textViewTotal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Total: $0"
+            android:text="@string/total_prefix_sample"
             android:textSize="18sp"
             android:textColor="@color/white"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:textStyle="bold" />
-
+            android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- Progress Bar -->
+    <!-- Loader -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="gone"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"/>
 
-    <!-- RecyclerView para productos -->
+    <!-- Lista -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewProducts"
         android:layout_width="match_parent"
@@ -65,9 +67,9 @@
         android:layout_weight="1"
         android:padding="12dp"
         android:clipToPadding="false"
-        android:background="@color/white" />
+        android:background="@color/white"/>
 
-    <!-- Mensaje cuando no hay productos -->
+    <!-- Vacío -->
     <LinearLayout
         android:id="@+id/linearLayoutEmpty"
         android:layout_width="match_parent"
@@ -83,43 +85,44 @@
             android:layout_height="100dp"
             android:src="@drawable/ic_launcher_foreground"
             android:alpha="0.3"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/desc_table_empty_illustration"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No hay productos en esta mesa"
+            android:text="@string/no_products_table"
             android:textSize="18sp"
             android:textColor="@color/cafe_brown"
             android:layout_marginBottom="12dp"
-            android:textStyle="bold" />
+            android:textStyle="bold"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Toca el botón + para agregar productos"
+            android:text="@string/tap_plus_to_add"
             android:textSize="16sp"
             android:textColor="@color/gray"
-            android:gravity="center" />
-
+            android:gravity="center"/>
     </LinearLayout>
 
-    <!-- Botones de acción mejorados -->
+    <!-- Barra de acciones abajo -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
         android:background="@color/white"
-        android:elevation="4dp">
+        android:elevation="4dp"
+        style="?android:attr/buttonBarStyle">
 
-        <!-- Botón Guardar Pedido / Volver -->
         <Button
             android:id="@+id/buttonSaveOrder"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="GUARDAR PEDIDO"
+            android:text="@string/save_order_caps"
             android:textSize="14sp"
             android:textStyle="bold"
             android:background="@color/cafe_green"
@@ -127,36 +130,29 @@
             android:layout_marginEnd="8dp"
             android:padding="16dp"
             android:drawableStart="@android:drawable/ic_menu_save"
-            android:drawablePadding="8dp" />
+            android:drawablePadding="8dp"/>
 
-        <!-- Botón Cerrar Mesa -->
+        <!-- Se deja oculto por si más adelante se revive -->
         <Button
             android:id="@+id/buttonCloseTable"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="CERRAR MESA"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:background="@color/cafe_red"
-            android:textColor="@color/white"
-            android:layout_marginStart="8dp"
-            android:padding="16dp"
-            android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
-            android:drawablePadding="8dp" />
-
+            android:visibility="gone"
+            android:text="@string/close_table_caps"/>
     </LinearLayout>
 
-    <!-- Floating Action Button para agregar productos -->
+    <!-- FAB agregar productos -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddProduct"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:src="@android:drawable/ic_input_add"
+        android:contentDescription="@string/fab_add_product"
         app:backgroundTint="@color/cafe_green"
         app:tint="@color/white"
-        app:elevation="6dp" />
-
-</LinearLayout> 
+        android:elevation="6dp"/>
+</LinearLayout>

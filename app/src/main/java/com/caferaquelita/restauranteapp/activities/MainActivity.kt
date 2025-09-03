@@ -10,6 +10,13 @@ import com.caferaquelita.restauranteapp.R
 import com.caferaquelita.restauranteapp.models.User
 import com.caferaquelita.restauranteapp.viewmodels.AuthViewModel
 import com.google.firebase.auth.FirebaseAuth
+import androidx.activity.viewModels
+import androidx.core.view.isVisible
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import android.widget.Toast
+
+
 
 /**
  * Actividad principal que muestra el menú de la aplicación según el rol del usuario.
@@ -27,41 +34,58 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonLogout: Button
     
     private var currentUser: User? = null
-    private val authViewModel = AuthViewModel()
+    private val authViewModel: AuthViewModel by viewModels()
 
-private fun renderPermissions(perms: Map<String, Boolean>?) {
-    val canInventory     = perms?.get("manage_inventory")      == true
-    val canTables        = perms?.get("manage_tables")         == true
-    val canBilling       = perms?.get("generate_invoices")     == true
-    val canCashRegister  = perms?.get("manage_cash_register")  == true
-    val canDashboard     = perms?.get("view_reports")          == true
-    val canEmployees     = perms?.get("manage_employees")      == true
+    // Listener de Firestore y flag de estado de caja
+    private var cashStatusListener: ListenerRegistration? = null
+    private var isCashOpen: Boolean = false
 
-    buttonInventory.visibility    = if (canInventory)    View.VISIBLE else View.GONE
-    buttonTables.visibility       = if (canTables)       View.VISIBLE else View.GONE
-    buttonBilling.visibility      = if (canBilling)      View.VISIBLE else View.GONE
-    buttonCashRegister.visibility = if (canCashRegister) View.VISIBLE else View.GONE
-    buttonDashboard.visibility    = if (canDashboard)    View.VISIBLE else View.GONE
-    buttonEmployees.visibility    = if (canEmployees)    View.VISIBLE else View.GONE
-}
-
-
-    
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         setupViews()
         setupUserInfo()
         setupUI()
+
+        // Observa el documento completo del usuario en Firestore (incluye permissions)
+        authViewModel.currentUserData.observe(this) { user ->
+            currentUser = user
+            if (user != null) {
+                // Actualiza cabecera (nombre/rol) con lo que viene de Firestore
+                updateUserDisplay(user.role)
+                // Aplica permisos reales
+                applyPermissions(user)
+            } else {
+                // Si no hay doc o falló, puedes ocultar todo menos "Cerrar sesión" si quieres
+                buttonInventory.isVisible = false
+                buttonTables.isVisible = false
+                buttonBilling.isVisible = false
+                buttonCashRegister.isVisible = false
+                buttonDashboard.isVisible = false
+                buttonEmployees.isVisible = false
+            }
+        }
+
     }
 
     override fun onStart() {
-    super.onStart()
-    currentUser = authViewModel.getCurrentUser()
-    renderPermissions(currentUser?.permissions)
-}
+        super.onStart()
+        if (authViewModel.isUserLoggedIn()) {
+            authViewModel.fetchCurrentUserData() // ← Esto trae el doc de Firestore con "permissions"
+            // Escucha en tiempo real si la caja está abierta
+            cashStatusListener = FirebaseFirestore.getInstance()
+                .collection("cash")
+                .document("status")
+                .addSnapshotListener { snap, _ ->
+                    isCashOpen = snap?.getBoolean("isOpen") == true
+                    // Si quieres, aquí puedes mostrar/ocultar algún aviso en la pantalla principal
+                    // o actualizar botones, pero lo importante es tener isCashOpen actualizado.
+                }
+
+        }
+    }
+
 
 
     private fun setupViews() {
@@ -111,20 +135,44 @@ private fun renderPermissions(perms: Map<String, Boolean>?) {
     }
 
     private fun setupButtonsByRole() {
-    renderPermissions(currentUser?.permissions)
-}
+        currentUser?.let { applyPermissions(it) } ?: run {
+            // Oculta hasta que lleguen permisos reales
+            buttonInventory.isVisible = false
+            buttonTables.isVisible = false
+            buttonBilling.isVisible = false
+            buttonCashRegister.isVisible = false
+            buttonDashboard.isVisible = false
+            buttonEmployees.isVisible = false
+        }
+    }
+
 
 
     private fun setupButtonListeners() {
         buttonInventory.setOnClickListener {
             startActivity(Intent(this, InventoryActivity::class.java))
         }
-        
+
         buttonTables.setOnClickListener {
+            if (!isCashOpen) {
+                Toast.makeText(
+                    this,
+                    "No hay caja abierta. Abre la caja para gestionar mesas.",
+                    Toast.LENGTH_LONG
+                ).show()
+                startActivity(Intent(this, CashRegisterActivity::class.java))
+                return@setOnClickListener
+            }
             startActivity(Intent(this, TablesActivity::class.java))
         }
-        
+
+
         buttonBilling.setOnClickListener {
+            if (!isCashOpen) {
+                Toast.makeText(this, "No hay caja abierta. Abre la caja para facturar.", Toast.LENGTH_LONG).show()
+                startActivity(Intent(this, CashRegisterActivity::class.java))
+                return@setOnClickListener
+            }
             startActivity(Intent(this, InvoiceReportActivity::class.java))
         }
         
@@ -144,8 +192,26 @@ private fun renderPermissions(perms: Map<String, Boolean>?) {
         buttonLogout.setOnClickListener {
             // Cerrar sesión
             FirebaseAuth.getInstance().signOut()
+            authViewModel.logout() // ← limpia currentUserData en el VM
             startActivity(Intent(this, AuthActivity::class.java))
             finish()
+
         }
+
     }
+    private fun applyPermissions(user: User) {
+        // Claves EXACTAS en snake_case como están en Firestore
+        buttonTables.isVisible       = user.hasPermission("manage_tables")
+        buttonBilling.isVisible      = user.hasPermission("generate_invoices")
+        buttonCashRegister.isVisible = user.hasPermission("manage_cash_register")
+        buttonInventory.isVisible    = user.hasPermission("manage_inventory")
+        buttonDashboard.isVisible    = user.hasPermission("view_reports")
+        buttonEmployees.isVisible    = user.hasPermission("manage_employees")
+    }
+    override fun onStop() {
+        super.onStop()
+        cashStatusListener?.remove()
+        cashStatusListener = null
+    }
+
 } 

@@ -26,88 +26,95 @@
         android:padding="16dp">
 
         <!-- Información de resumen mejorada -->
+
+        <!-- Lista de mesas -->
+
+        <!-- Estado vacío mejorado -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
             android:layout_marginBottom="20dp"
             android:background="@color/white"
-            android:padding="16dp"
+            android:baselineAligned="false"
             android:elevation="4dp"
-            android:backgroundTint="@color/white">
+            android:orientation="horizontal"
+            android:padding="16dp">
+
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:orientation="vertical"
+                android:background="@drawable/bg_table_badge_green"
                 android:gravity="center"
-                android:background="@color/cafe_green_light"
-                android:padding="12dp"
-                android:layout_marginEnd="8dp">
+                android:orientation="vertical"
+                android:padding="12dp">
+
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MESAS LIBRES"
-                    android:textSize="12sp"
+                    android:text="@string/tables_free"
                     android:textColor="@color/white"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/textViewFreeTables"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
+                    android:text="@string/zero"
+                    android:textColor="@color/white"
                     android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:orientation="vertical"
+                android:background="@drawable/bg_table_badge_red"
                 android:gravity="center"
-                android:background="@color/cafe_red_light"
-                android:padding="12dp"
-                android:layout_marginStart="8dp">
+                android:orientation="vertical"
+                android:padding="12dp">
+
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MESAS OCUPADAS"
-                    android:textSize="12sp"
+                    android:text="@string/tables_occupied"
                     android:textColor="@color/white"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/textViewOccupiedTables"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
+                    android:text="@string/zero"
+                    android:textColor="@color/white"
                     android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Lista de mesas -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewTables"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="488dp"
             android:layout_weight="1"
             android:background="@color/white"
             android:elevation="2dp" />
 
-        <!-- Estado vacío mejorado -->
         <LinearLayout
-            android:id="@+id/textViewEmpty"
+            android:id="@+id/linearLayoutEmpty"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -122,12 +129,14 @@
                 android:layout_height="120dp"
                 android:src="@drawable/ic_launcher_foreground"
                 android:alpha="0.2"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="24dp"
+                android:contentDescription="@string/desc_tables_empty_illustration"/>
+
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No hay mesas disponibles"
+                android:text="@string/tables_empty_title"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/cafe_brown"
@@ -136,7 +145,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Las mesas se crean automáticamente"
+                android:text="@string/tables_empty_subtitle"
                 android:textSize="16sp"
                 android:textColor="@color/gray"
                 android:gravity="center" />
@@ -162,6 +171,8 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:src="@android:drawable/ic_input_add"
+        android:contentDescription="@string/fab_add_table"
+        app:tooltipText="@string/fab_add_table"
         app:backgroundTint="@color/cafe_green"
         app:tint="@color/white"
         app:elevation="6dp" />

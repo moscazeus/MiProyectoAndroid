@@ -1,12 +1,14 @@
 package com.caferaquelita.restauranteapp.viewmodels
 
 import android.util.Patterns
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData              // ← nuevo
+import androidx.lifecycle.MutableLiveData     // ← nuevo
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.caferaquelita.restauranteapp.models.User
+import com.caferaquelita.restauranteapp.models.User  // ← nuevo
 import com.caferaquelita.restauranteapp.repositories.AuthRepository
+import com.google.firebase.auth.FirebaseAuth        // ← nuevo
+import com.google.firebase.firestore.FirebaseFirestore  // ← nuevo
 import kotlinx.coroutines.launch
 
 /**
@@ -14,6 +16,11 @@ import kotlinx.coroutines.launch
  */
 class AuthViewModel : ViewModel() {
     private val repository = AuthRepository()
+
+    // ======= Inicio sección Firestore UserData =======
+    private val _currentUserData = MutableLiveData<User?>()
+    val currentUserData: LiveData<User?> = _currentUserData
+    // ======= Fin sección Firestore UserData =======
 
     private val _loginResult = MutableLiveData<Result<User>>()
     val loginResult: LiveData<Result<User>> = _loginResult
@@ -33,17 +40,17 @@ class AuthViewModel : ViewModel() {
             _loginResult.value = Result.failure(Exception("El email es requerido"))
             return
         }
-        
+
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             _loginResult.value = Result.failure(Exception("Formato de email no válido"))
             return
         }
-        
+
         if (password.isBlank()) {
             _loginResult.value = Result.failure(Exception("La contraseña es requerida"))
             return
         }
-        
+
         if (password.length < 6) {
             _loginResult.value = Result.failure(Exception("La contraseña debe tener al menos 6 caracteres"))
             return
@@ -54,6 +61,11 @@ class AuthViewModel : ViewModel() {
             try {
                 val result = repository.login(email, password)
                 _loginResult.value = result
+                // Si el login fue exitoso, trae el documento en /users/{uid}
+                if (result.isSuccess) {
+                    fetchCurrentUserData()
+                }
+
             } catch (e: Exception) {
                 _loginResult.value = Result.failure(e)
             } finally {
@@ -71,6 +83,10 @@ class AuthViewModel : ViewModel() {
             try {
                 val result = repository.loginWithGoogle(account)
                 _loginResult.value = result
+                if (result.isSuccess) {
+                    fetchCurrentUserData()
+                }
+
             } catch (e: Exception) {
                 _loginResult.value = Result.failure(e)
             } finally {
@@ -88,27 +104,27 @@ class AuthViewModel : ViewModel() {
             _registerResult.value = Result.failure(Exception("El nombre es requerido"))
             return
         }
-        
+
         if (email.isBlank()) {
             _registerResult.value = Result.failure(Exception("El email es requerido"))
             return
         }
-        
+
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             _registerResult.value = Result.failure(Exception("Formato de email no válido"))
             return
         }
-        
+
         if (password.isBlank()) {
             _registerResult.value = Result.failure(Exception("La contraseña es requerida"))
             return
         }
-        
+
         if (password.length < 6) {
             _registerResult.value = Result.failure(Exception("La contraseña debe tener al menos 6 caracteres"))
             return
         }
-        
+
         if (role.isBlank()) {
             _registerResult.value = Result.failure(Exception("El rol es requerido"))
             return
@@ -119,6 +135,10 @@ class AuthViewModel : ViewModel() {
             try {
                 val result = repository.register(name, email, password, role)
                 _registerResult.value = result
+                if (result.isSuccess) {
+                    fetchCurrentUserData()
+                }
+
             } catch (e: Exception) {
                 _registerResult.value = Result.failure(e)
             } finally {
@@ -132,7 +152,9 @@ class AuthViewModel : ViewModel() {
      */
     fun logout() {
         repository.logout()
+        _currentUserData.value = null  // limpiar usuario en memoria
     }
+
 
     /**
      * Obtener usuario actual
@@ -147,7 +169,7 @@ class AuthViewModel : ViewModel() {
     fun isUserLoggedIn(): Boolean {
         return repository.isUserLoggedIn()
     }
-    
+
     /**
      * Limpiar resultados
      */
@@ -155,7 +177,28 @@ class AuthViewModel : ViewModel() {
         _loginResult.value = null
         _registerResult.value = null
     }
-    
+
+    /**
+     * Carga desde Firestore el documento completo del usuario autenticado,
+     * incluidas sus permissions, y publica el resultado en currentUserData.
+     */
+    fun fetchCurrentUserData() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { snap ->
+                val user = snap.toObject(User::class.java)
+                _currentUserData.value = user
+            }
+            .addOnFailureListener { exception ->
+                _currentUserData.value = null   // ← AÑADE esta línea
+                // Opcional: podrías exponer un LiveData de error si hace falta
+            }
+    }
+
+
     /**
      * Limpiar datos al destruir ViewModel
      */
@@ -165,4 +208,5 @@ class AuthViewModel : ViewModel() {
         _registerResult.value = null
         _isLoading.value = false
     }
-} 
+
+}
